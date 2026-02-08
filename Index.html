@@ -38,6 +38,37 @@
             margin-bottom: 10px;
         }
 
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .sync-indicator.connected {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        .sync-indicator.syncing {
+            background: #ff9800;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .tabs {
             display: flex;
             gap: 10px;
@@ -124,6 +155,11 @@
 
         .btn:active {
             background: #5568d3;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
 
         .items-list {
@@ -340,6 +376,53 @@
             margin-top: 4px;
         }
 
+        .setup-notice {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .setup-notice h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .setup-notice p {
+            color: #856404;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .setup-notice code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .setup-steps {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .setup-steps ol {
+            margin-left: 20px;
+        }
+
+        .setup-steps li {
+            margin-bottom: 10px;
+            color: #333;
+            line-height: 1.6;
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 15px;
@@ -373,11 +456,32 @@
     <div class="container">
         <div class="header">
             <h1>📚 English Learning</h1>
+            <div class="sync-status">
+                <div class="sync-indicator" id="sync-indicator"></div>
+                <span id="sync-text">Setting up...</span>
+            </div>
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('words')">Words</button>
                 <button class="tab" onclick="switchTab('sentences')">Sentences</button>
                 <button class="tab" onclick="switchTab('courses')">Courses</button>
                 <button class="tab" onclick="switchTab('study')">Study</button>
+            </div>
+        </div>
+
+        <!-- Setup Notice -->
+        <div id="setup-notice" class="setup-notice" style="display: none;">
+            <h3>⚠️ Firebase Setup Required</h3>
+            <p>To enable cloud sync between your devices, please configure Firebase:</p>
+            <div class="setup-steps">
+                <ol>
+                    <li>Go to <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a></li>
+                    <li>Create a new project (free)</li>
+                    <li>Add a Web App to your project</li>
+                    <li>Copy your Firebase config</li>
+                    <li>Paste it in the JavaScript section of this file (line ~850)</li>
+                    <li>Enable <strong>Firestore Database</strong> in Firebase Console</li>
+                    <li>Set rules to: <code>allow read, write: if true;</code> (for testing)</li>
+                </ol>
             </div>
         </div>
 
@@ -404,7 +508,7 @@
                             <option value="">No Course</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn">Add Word</button>
+                    <button type="submit" class="btn" id="word-submit-btn">Add Word</button>
                 </form>
             </div>
 
@@ -496,20 +600,286 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // ========================================
+        // FIREBASE CONFIGURATION
+        // ========================================
+        // TODO: Replace this with your own Firebase config
+        // Get it from: Firebase Console > Project Settings > Your Apps > Web App
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        let app, db;
+        let isFirebaseConfigured = false;
+
+        try {
+            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                isFirebaseConfigured = true;
+                updateSyncStatus('connected', 'Connected - Cloud Sync Active');
+            } else {
+                updateSyncStatus('error', 'Offline - Setup Required');
+                document.getElementById('setup-notice').style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            updateSyncStatus('error', 'Offline Mode');
+            document.getElementById('setup-notice').style.display = 'block';
+        }
+
         // Data storage
-        let data = {
+        window.data = {
             words: [],
             sentences: [],
             courses: []
         };
 
-        // Load data from localStorage
-        function loadData() {
-            const saved = localStorage.getItem('englishLearningData');
-            if (saved) {
-                data = JSON.parse(saved);
+        // Update sync status indicator
+        function updateSyncStatus(status, text) {
+            const indicator = document.getElementById('sync-indicator');
+            const syncText = document.getElementById('sync-text');
+            
+            indicator.className = 'sync-indicator ' + status;
+            syncText.textContent = text;
+        }
+
+        // Load data from Firestore with real-time updates
+        async function loadDataFromFirestore() {
+            if (!isFirebaseConfigured) {
+                // Fall back to localStorage
+                const saved = localStorage.getItem('englishLearningData');
+                if (saved) {
+                    window.data = JSON.parse(saved);
+                }
+                updateUI();
+                return;
             }
+
+            try {
+                updateSyncStatus('syncing', 'Syncing...');
+
+                // Real-time listener for words
+                const wordsQuery = query(collection(db, 'words'), orderBy('timestamp', 'desc'));
+                onSnapshot(wordsQuery, (snapshot) => {
+                    window.data.words = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    renderWords();
+                    renderStudyList();
+                });
+
+                // Real-time listener for sentences
+                const sentencesQuery = query(collection(db, 'sentences'), orderBy('timestamp', 'desc'));
+                onSnapshot(sentencesQuery, (snapshot) => {
+                    window.data.sentences = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    renderSentences();
+                });
+
+                // Real-time listener for courses
+                const coursesQuery = query(collection(db, 'courses'), orderBy('timestamp', 'desc'));
+                onSnapshot(coursesQuery, (snapshot) => {
+                    window.data.courses = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    updateCourseSelects();
+                    renderCourses();
+                });
+
+                updateSyncStatus('connected', 'Connected - Cloud Sync Active');
+            } catch (error) {
+                console.error('Error loading from Firestore:', error);
+                updateSyncStatus('error', 'Sync Error');
+            }
+        }
+
+        // Add word to Firestore
+        window.addWord = async function(event) {
+            event.preventDefault();
+            
+            const wordData = {
+                word: document.getElementById('word-input').value,
+                meaning: document.getElementById('word-meaning').value,
+                example: document.getElementById('word-example').value,
+                course: document.getElementById('word-course').value,
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now()
+            };
+
+            if (isFirebaseConfigured) {
+                try {
+                    updateSyncStatus('syncing', 'Saving...');
+                    await addDoc(collection(db, 'words'), wordData);
+                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
+                    event.target.reset();
+                } catch (error) {
+                    console.error('Error adding word:', error);
+                    alert('Error saving word. Please try again.');
+                    updateSyncStatus('error', 'Sync Error');
+                }
+            } else {
+                // Fallback to localStorage
+                wordData.id = Date.now();
+                window.data.words.unshift(wordData);
+                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
+                renderWords();
+                renderStudyList();
+                event.target.reset();
+            }
+        };
+
+        // Add sentence to Firestore
+        window.addSentence = async function(event) {
+            event.preventDefault();
+            
+            const sentenceData = {
+                sentence: document.getElementById('sentence-input').value,
+                notes: document.getElementById('sentence-notes').value,
+                course: document.getElementById('sentence-course').value,
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now()
+            };
+
+            if (isFirebaseConfigured) {
+                try {
+                    updateSyncStatus('syncing', 'Saving...');
+                    await addDoc(collection(db, 'sentences'), sentenceData);
+                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
+                    event.target.reset();
+                } catch (error) {
+                    console.error('Error adding sentence:', error);
+                    alert('Error saving sentence. Please try again.');
+                    updateSyncStatus('error', 'Sync Error');
+                }
+            } else {
+                // Fallback to localStorage
+                sentenceData.id = Date.now();
+                window.data.sentences.unshift(sentenceData);
+                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
+                renderSentences();
+                event.target.reset();
+            }
+        };
+
+        // Add course to Firestore
+        window.addCourse = async function(event) {
+            event.preventDefault();
+            
+            const courseData = {
+                name: document.getElementById('course-name').value,
+                description: document.getElementById('course-description').value,
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now()
+            };
+
+            if (isFirebaseConfigured) {
+                try {
+                    updateSyncStatus('syncing', 'Saving...');
+                    await addDoc(collection(db, 'courses'), courseData);
+                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
+                    event.target.reset();
+                } catch (error) {
+                    console.error('Error adding course:', error);
+                    alert('Error saving course. Please try again.');
+                    updateSyncStatus('error', 'Sync Error');
+                }
+            } else {
+                // Fallback to localStorage
+                courseData.id = Date.now();
+                window.data.courses.unshift(courseData);
+                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
+                updateCourseSelects();
+                renderCourses();
+                event.target.reset();
+            }
+        };
+
+        // Delete word from Firestore
+        window.deleteWord = async function(id) {
+            if (!confirm('Delete this word?')) return;
+
+            if (isFirebaseConfigured) {
+                try {
+                    updateSyncStatus('syncing', 'Deleting...');
+                    await deleteDoc(doc(db, 'words', id));
+                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
+                } catch (error) {
+                    console.error('Error deleting word:', error);
+                    alert('Error deleting word. Please try again.');
+                    updateSyncStatus('error', 'Sync Error');
+                }
+            } else {
+                window.data.words = window.data.words.filter(w => w.id !== id);
+                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
+                renderWords();
+                renderStudyList();
+            }
+        };
+
+        // Delete sentence from Firestore
+        window.deleteSentence = async function(id) {
+            if (!confirm('Delete this sentence?')) return;
+
+            if (isFirebaseConfigured) {
+                try {
+                    updateSyncStatus('syncing', 'Deleting...');
+                    await deleteDoc(doc(db, 'sentences', id));
+                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
+                } catch (error) {
+                    console.error('Error deleting sentence:', error);
+                    alert('Error deleting sentence. Please try again.');
+                    updateSyncStatus('error', 'Sync Error');
+                }
+            } else {
+                window.data.sentences = window.data.sentences.filter(s => s.id !== id);
+                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
+                renderSentences();
+            }
+        };
+
+        // Delete course from Firestore
+        window.deleteCourse = async function(id) {
+            if (!confirm('Delete this course? Words and sentences will not be deleted.')) return;
+
+            if (isFirebaseConfigured) {
+                try {
+                    updateSyncStatus('syncing', 'Deleting...');
+                    await deleteDoc(doc(db, 'courses', id));
+                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
+                } catch (error) {
+                    console.error('Error deleting course:', error);
+                    alert('Error deleting course. Please try again.');
+                    updateSyncStatus('error', 'Sync Error');
+                }
+            } else {
+                window.data.courses = window.data.courses.filter(c => c.id !== id);
+                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
+                updateCourseSelects();
+                renderCourses();
+                renderWords();
+                renderSentences();
+            }
+        };
+
+        // UI Update Functions
+        function updateUI() {
             updateCourseSelects();
             renderWords();
             renderSentences();
@@ -517,11 +887,11 @@
             renderStudyList();
         }
 
-        // Save data to localStorage
-        function saveData() {
-            localStorage.setItem('englishLearningData', JSON.stringify(data));
-        }
+        // Initialize
+        loadDataFromFirestore();
+    </script>
 
+    <script>
         // Switch tabs
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -531,62 +901,6 @@
             document.getElementById(tab + '-section').classList.add('active');
         }
 
-        // Add word
-        function addWord(event) {
-            event.preventDefault();
-            
-            const word = {
-                id: Date.now(),
-                word: document.getElementById('word-input').value,
-                meaning: document.getElementById('word-meaning').value,
-                example: document.getElementById('word-example').value,
-                course: document.getElementById('word-course').value,
-                date: new Date().toLocaleDateString()
-            };
-
-            data.words.unshift(word);
-            saveData();
-            renderWords();
-            renderStudyList();
-            event.target.reset();
-        }
-
-        // Add sentence
-        function addSentence(event) {
-            event.preventDefault();
-            
-            const sentence = {
-                id: Date.now(),
-                sentence: document.getElementById('sentence-input').value,
-                notes: document.getElementById('sentence-notes').value,
-                course: document.getElementById('sentence-course').value,
-                date: new Date().toLocaleDateString()
-            };
-
-            data.sentences.unshift(sentence);
-            saveData();
-            renderSentences();
-            event.target.reset();
-        }
-
-        // Add course
-        function addCourse(event) {
-            event.preventDefault();
-            
-            const course = {
-                id: Date.now(),
-                name: document.getElementById('course-name').value,
-                description: document.getElementById('course-description').value,
-                date: new Date().toLocaleDateString()
-            };
-
-            data.courses.unshift(course);
-            saveData();
-            updateCourseSelects();
-            renderCourses();
-            event.target.reset();
-        }
-
         // Update course select dropdowns
         function updateCourseSelects() {
             const wordSelect = document.getElementById('word-course');
@@ -594,10 +908,10 @@
             const studyFilter = document.getElementById('study-filter');
             
             const options = '<option value="">No Course</option>' + 
-                data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                window.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             
             const filterOptions = '<option value="">All Courses</option>' + 
-                data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                window.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             
             wordSelect.innerHTML = options;
             sentenceSelect.innerHTML = options;
@@ -607,7 +921,7 @@
         // Render words
         function renderWords(filtered = null) {
             const list = document.getElementById('words-list');
-            const words = filtered || data.words;
+            const words = filtered || window.data.words;
 
             if (words.length === 0) {
                 list.innerHTML = `
@@ -620,13 +934,13 @@
             }
 
             list.innerHTML = words.map(word => {
-                const course = data.courses.find(c => c.id == word.course);
+                const course = window.data.courses.find(c => c.id == word.course);
                 return `
                     <div class="item-card">
                         <div class="item-header">
                             <div class="item-title">${word.word}</div>
                             <div class="item-actions">
-                                <button class="icon-btn" onclick="deleteWord(${word.id})">🗑️</button>
+                                <button class="icon-btn" onclick="deleteWord('${word.id}')">🗑️</button>
                             </div>
                         </div>
                         <div class="item-content">
@@ -643,7 +957,7 @@
         // Render sentences
         function renderSentences(filtered = null) {
             const list = document.getElementById('sentences-list');
-            const sentences = filtered || data.sentences;
+            const sentences = filtered || window.data.sentences;
 
             if (sentences.length === 0) {
                 list.innerHTML = `
@@ -656,12 +970,12 @@
             }
 
             list.innerHTML = sentences.map(sentence => {
-                const course = data.courses.find(c => c.id == sentence.course);
+                const course = window.data.courses.find(c => c.id == sentence.course);
                 return `
                     <div class="item-card">
                         <div class="item-header">
                             <div class="item-actions">
-                                <button class="icon-btn" onclick="deleteSentence(${sentence.id})">🗑️</button>
+                                <button class="icon-btn" onclick="deleteSentence('${sentence.id}')">🗑️</button>
                             </div>
                         </div>
                         <div class="item-content">
@@ -679,7 +993,7 @@
         function renderCourses() {
             const list = document.getElementById('courses-list');
 
-            if (data.courses.length === 0) {
+            if (window.data.courses.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🎓</div>
@@ -689,15 +1003,15 @@
                 return;
             }
 
-            list.innerHTML = data.courses.map(course => {
-                const wordCount = data.words.filter(w => w.course == course.id).length;
-                const sentenceCount = data.sentences.filter(s => s.course == course.id).length;
+            list.innerHTML = window.data.courses.map(course => {
+                const wordCount = window.data.words.filter(w => w.course == course.id).length;
+                const sentenceCount = window.data.sentences.filter(s => s.course == course.id).length;
                 
                 return `
                     <div class="course-item">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div class="course-title">${course.name}</div>
-                            <button class="icon-btn" onclick="deleteCourse(${course.id})">🗑️</button>
+                            <button class="icon-btn" onclick="deleteCourse('${course.id}')">🗑️</button>
                         </div>
                         ${course.description ? `<div class="course-description">${course.description}</div>` : ''}
                         <div class="course-stats">
@@ -713,7 +1027,7 @@
         // Render Study List
         function renderStudyList(filtered = null) {
             const list = document.getElementById('study-list');
-            let words = filtered !== null ? filtered : [...data.words];
+            let words = filtered !== null ? filtered : [...window.data.words];
 
             // Apply course filter
             const courseFilter = document.getElementById('study-filter').value;
@@ -724,9 +1038,9 @@
             // Apply sorting
             const sortOption = document.getElementById('study-sort').value;
             if (sortOption === 'newest') {
-                words.sort((a, b) => b.id - a.id);
+                words.sort((a, b) => (b.timestamp || b.id) - (a.timestamp || a.id));
             } else if (sortOption === 'oldest') {
-                words.sort((a, b) => a.id - b.id);
+                words.sort((a, b) => (a.timestamp || a.id) - (b.timestamp || b.id));
             } else if (sortOption === 'alphabetical') {
                 words.sort((a, b) => a.word.localeCompare(b.word));
             }
@@ -764,7 +1078,7 @@
             `;
 
             const wordsHTML = words.map((word, index) => {
-                const course = data.courses.find(c => c.id == word.course);
+                const course = window.data.courses.find(c => c.id == word.course);
                 return `
                     <div class="dictionary-card">
                         <div class="dictionary-word">
@@ -782,27 +1096,13 @@
             list.innerHTML = statsBar + wordsHTML;
         }
 
-        // Search study list
-        function searchStudyList(query) {
-            if (!query) {
-                renderStudyList();
-                return;
-            }
-            const filtered = data.words.filter(w => 
-                w.word.toLowerCase().includes(query.toLowerCase()) ||
-                w.meaning.toLowerCase().includes(query.toLowerCase()) ||
-                (w.example && w.example.toLowerCase().includes(query.toLowerCase()))
-            );
-            renderStudyList(filtered);
-        }
-
         // Search functions
         function searchWords(query) {
             if (!query) {
                 renderWords();
                 return;
             }
-            const filtered = data.words.filter(w => 
+            const filtered = window.data.words.filter(w => 
                 w.word.toLowerCase().includes(query.toLowerCase()) ||
                 w.meaning.toLowerCase().includes(query.toLowerCase())
             );
@@ -814,44 +1114,25 @@
                 renderSentences();
                 return;
             }
-            const filtered = data.sentences.filter(s => 
+            const filtered = window.data.sentences.filter(s => 
                 s.sentence.toLowerCase().includes(query.toLowerCase()) ||
                 s.notes.toLowerCase().includes(query.toLowerCase())
             );
             renderSentences(filtered);
         }
 
-        // Delete functions
-        function deleteWord(id) {
-            if (confirm('Delete this word?')) {
-                data.words = data.words.filter(w => w.id !== id);
-                saveData();
-                renderWords();
+        function searchStudyList(query) {
+            if (!query) {
                 renderStudyList();
+                return;
             }
+            const filtered = window.data.words.filter(w => 
+                w.word.toLowerCase().includes(query.toLowerCase()) ||
+                w.meaning.toLowerCase().includes(query.toLowerCase()) ||
+                (w.example && w.example.toLowerCase().includes(query.toLowerCase()))
+            );
+            renderStudyList(filtered);
         }
-
-        function deleteSentence(id) {
-            if (confirm('Delete this sentence?')) {
-                data.sentences = data.sentences.filter(s => s.id !== id);
-                saveData();
-                renderSentences();
-            }
-        }
-
-        function deleteCourse(id) {
-            if (confirm('Delete this course? Words and sentences will not be deleted.')) {
-                data.courses = data.courses.filter(c => c.id !== id);
-                saveData();
-                updateCourseSelects();
-                renderCourses();
-                renderWords();
-                renderSentences();
-            }
-        }
-
-        // Initialize
-        loadData();
     </script>
 </body>
 </html>

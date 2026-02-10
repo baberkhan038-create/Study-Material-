@@ -5,191 +5,216 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>English Learning App</title>
     <style>
-        /* Base Styles & Animations */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); 
-            min-height: 100vh; 
-            padding: 20px; 
-            color: #ffffff;
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+            animation: gradientShift 15s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .container { max-width: 600px; margin: 0 auto; }
 
-        /* Profile Screen - NO DELETE ICON HERE */
+        /* Profile Selection Screen */
         .profile-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; }
-        .profiles-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; margin-top: 20px; }
-        .profile-card { 
-            background: rgba(30, 30, 46, 0.95); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 15px; 
-            padding: 25px; 
-            text-align: center; 
-            cursor: pointer; 
+        .profile-header {
+            background: rgba(30, 30, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 100%;
         }
 
-        /* Internal Interface - Header & Tabs */
+        .profile-header h1 {
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .profiles-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .profile-card {
+            background: rgba(30, 30, 46, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .add-profile-btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center; justify-content: center; gap: 10px;
+        }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: rgba(30, 30, 46, 0.98); border-radius: 20px; padding: 30px; max-width: 400px; width: 90%; }
+        .pin-input { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); color: #00d4ff; border-radius: 10px; text-align: center; font-size: 24px; letter-spacing: 10px; }
+
+        /* Main App Interface */
         .main-app { display: none; }
         .main-app.active { display: block; }
+        .header { background: rgba(30, 30, 46, 0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
         
-        .header { background: rgba(30, 30, 46, 0.95); padding: 15px; border-radius: 15px; margin-bottom: 20px; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        
-        .delete-profile-btn {
-            background: rgba(255, 82, 82, 0.1);
-            color: #ff5252;
-            border: 1px solid rgba(255, 82, 82, 0.3);
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            cursor: pointer;
-        }
+        .btn-delete-profile { background: rgba(255, 82, 82, 0.1); color: #ff5252; border: 1px solid #ff5252; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; margin-right: 10px; }
+        .logout-btn { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; }
 
-        /* Horizontal Tabs - Original Layout */
-        .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
-        .tab { 
-            flex: 1; 
-            padding: 10px; 
-            background: rgba(255, 255, 255, 0.05); 
-            color: #a0aec0; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            font-weight: 600;
-            white-space: nowrap;
-            text-align: center;
-        }
+        .tabs { display: flex; gap: 10px; margin-top: 15px; }
+        .tab { flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; color: #a0aec0; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); font-weight: 600; text-align: center;}
         .tab.active { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; }
 
-        /* Content Sections */
         .content-section { display: none; }
         .content-section.active { display: block; }
 
-        /* Input Forms */
-        .add-form { background: rgba(30, 30, 46, 0.95); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        /* TEXT VISIBILITY FIX */
+        .item-card, .dictionary-card, .course-item { 
+            background: rgba(30, 30, 46, 0.95); border: 1px solid rgba(255,255,255,0.15); border-radius: 15px; padding: 20px; margin-bottom: 15px; 
+        }
+        .item-title, .dictionary-word, .course-title { 
+            color: #b388ff; font-weight: 800; font-size: 1.2rem; margin-bottom: 8px; text-transform: uppercase; 
+        }
+        .item-content, .dictionary-meaning { 
+            color: #ffffff !important; font-size: 15px; line-height: 1.6; /* Result text visible */
+        }
+        .item-meta, .course-stats { color: #cbd5e0; font-size: 12px; margin-top: 10px; }
+        .course-badge { background: #7b2ff7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; }
+
         .add-form input, .add-form textarea, .add-form select { 
-            width: 100%; padding: 12px; margin-bottom: 10px;
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); 
-            color: #ffffff; border-radius: 10px; 
+            width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 10px; margin-bottom: 10px;
         }
-        .submit-btn { 
-            width: 100%; padding: 14px; 
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); 
-            color: white; border: none; border-radius: 10px; font-weight: 600; 
-        }
-
-        /* Visible Item Cards (Fixed visibility) */
-        .item-card { 
-            background: rgba(30, 30, 46, 0.95); 
-            border-radius: 15px; 
-            padding: 18px; 
-            margin-bottom: 12px; 
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            position: relative;
-        }
-        .item-title { color: #b388ff; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 5px; }
-        .item-text { color: #ffffff; margin-bottom: 8px; }
-        .item-meta { display: flex; gap: 12px; font-size: 12px; color: #cbd5e0; }
-        .trash-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; cursor: pointer; color: #ff5252; }
-
-        /* Modals */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: #1a1a2e; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; }
-        .pin-input { width: 100%; padding: 10px; font-size: 24px; text-align: center; letter-spacing: 10px; background: #000; color: #00d4ff; border: 1px solid #00d4ff; border-radius: 10px; margin: 15px 0; }
+        .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div id="profile-screen" class="profile-screen">
-            <h1 style="margin-bottom: 20px;">English Learning</h1>
-            <div id="profiles-list" class="profiles-list"></div>
-            <button class="submit-btn" style="margin-top:20px;" onclick="showModal('create-profile-modal')">+ Create Profile</button>
+            <div class="profile-header">
+                <h1>📚 English Learning</h1>
+                <p>Select your profile</p>
+            </div>
+            <div class="profiles-list" id="profiles-list"></div>
+            <button class="add-profile-btn" onclick="showCreateProfileModal()"><span>➕</span> Create New Profile</button>
         </div>
 
         <div id="main-app" class="main-app">
             <div class="header">
-                <div class="top-bar">
-                    <h2 id="user-display" style="color:#00d4ff"></h2>
-                    <div style="display:flex; gap:10px;">
-                        <button class="delete-profile-btn" onclick="triggerDelete()">Delete Account</button>
-                        <button class="delete-profile-btn" style="color:white; border-color:white" onclick="location.reload()">Logout</button>
+                <div class="header-top">
+                    <h2 id="current-profile-name" style="color:#00d4ff"></h2>
+                    <div>
+                        <button class="btn-delete-profile" onclick="triggerDeleteProfile()">Delete Profile</button>
+                        <button class="logout-btn" onclick="location.reload()">Logout</button>
                     </div>
                 </div>
                 <div class="tabs">
-                    <div class="tab active" onclick="switchTab(event, 'words-sec')">Words</div>
-                    <div class="tab" onclick="switchTab(event, 'sentences-sec')">Sentences</div>
-                    <div class="tab" onclick="switchTab(event, 'courses-sec')">Courses</div>
-                    <div class="tab" onclick="switchTab(event, 'study-sec')">Study</div>
+                    <div class="tab active" onclick="switchTab(event, 'words')">Words</div>
+                    <div class="tab" onclick="switchTab(event, 'sentences')">Sentences</div>
+                    <div class="tab" onclick="switchTab(event, 'courses')">Courses</div>
+                    <div class="tab" onclick="switchTab(event, 'study')">Study</div>
                 </div>
             </div>
 
-            <div id="words-sec" class="content-section active">
+            <div id="words-section" class="content-section active">
                 <div class="add-form">
-                    <form onsubmit="handleWordAdd(event)">
-                        <input type="text" id="w-input" placeholder="Word" required>
-                        <textarea id="w-meaning" placeholder="Meaning" required></textarea>
-                        <select id="w-course"><option value="">No Course</option></select>
+                    <form onsubmit="addWord(event)">
+                        <input type="text" id="word-input" placeholder="Enter word" required>
+                        <textarea id="word-meaning" placeholder="Meaning" required></textarea>
+                        <textarea id="word-example" placeholder="Example Sentence"></textarea>
+                        <select id="word-course"><option value="">No Course</option></select>
                         <button class="submit-btn">Add Word</button>
                     </form>
                 </div>
-                <div id="words-list-display"></div>
+                <div id="words-list"></div>
             </div>
 
-            <div id="sentences-sec" class="content-section">
+            <div id="sentences-section" class="content-section">
                 <div class="add-form">
-                    <form onsubmit="handleSentenceAdd(event)">
-                        <textarea id="s-input" placeholder="Enter Sentence" required></textarea>
-                        <select id="s-course"><option value="">No Course</option></select>
+                    <form onsubmit="addSentence(event)">
+                        <textarea id="sentence-input" placeholder="Enter sentence" required></textarea>
+                        <textarea id="sentence-notes" placeholder="Notes/Translation"></textarea>
+                        <select id="sentence-course"><option value="">No Course</option></select>
                         <button class="submit-btn">Add Sentence</button>
                     </form>
                 </div>
-                <div id="sentences-list-display"></div>
+                <div id="sentences-list"></div>
             </div>
 
-            <div id="courses-sec" class="content-section">
+            <div id="courses-section" class="content-section">
                 <div class="add-form">
-                    <form onsubmit="handleCourseAdd(event)">
-                        <input type="text" id="c-name" placeholder="Course Name" required>
+                    <form onsubmit="addCourse(event)">
+                        <input type="text" id="course-name" placeholder="Course Name" required>
+                        <textarea id="course-desc" placeholder="Description"></textarea>
                         <button class="submit-btn">Add Course</button>
                     </form>
                 </div>
-                <div id="courses-list-display"></div>
+                <div id="courses-list"></div>
             </div>
 
-            <div id="study-sec" class="content-section">
-                <div id="study-stats" style="margin-bottom:15px;"></div>
-                <div id="study-list-display"></div>
+            <div id="study-section" class="content-section">
+                <div id="study-list"></div>
             </div>
         </div>
     </div>
 
-    <div id="create-profile-modal" class="modal">
-        <div class="modal-content">
-            <h3>New Profile</h3>
-            <input type="text" id="p-name" placeholder="Name" style="width:100%; padding:10px; margin-top:10px;">
-            <input type="tel" id="p-pin" class="pin-input" placeholder="****" maxlength="4">
-            <button class="submit-btn" onclick="createNewProfile()">Create</button>
-            <button onclick="hideModal('create-profile-modal')" style="background:none; border:none; color:white; margin-top:10px;">Cancel</button>
-        </div>
-    </div>
+    <div id="create-modal" class="modal"><div class="modal-content">
+        <h2>New Profile</h2>
+        <input type="text" id="new-name" placeholder="Name" class="add-form" style="margin-top:15px; width:100%">
+        <input type="tel" id="new-pin" class="pin-input" placeholder="****" maxlength="4">
+        <button class="submit-btn" onclick="createProfile()">Create</button>
+        <button class="logout-btn" style="width:100%; margin-top:10px;" onclick="hideModal('create-modal')">Cancel</button>
+    </div></div>
 
-    <div id="login-modal" class="modal">
-        <div class="modal-content">
-            <h3 id="login-title">Enter PIN</h3>
-            <input type="tel" id="l-pin" class="pin-input" placeholder="****" maxlength="4">
-            <button class="submit-btn" id="login-confirm">Confirm</button>
-            <button onclick="hideModal('login-modal')" style="background:none; border:none; color:white; margin-top:10px;">Cancel</button>
-        </div>
-    </div>
+    <div id="pin-modal" class="modal"><div class="modal-content">
+        <h2 id="pin-title">Enter PIN</h2>
+        <input type="tel" id="enter-pin" class="pin-input" placeholder="****" maxlength="4">
+        <button class="submit-btn" id="pin-confirm-btn">Enter</button>
+        <button class="logout-btn" style="width:100%; margin-top:10px;" onclick="hideModal('pin-modal')">Cancel</button>
+    </div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-       const firebaseConfig = {
+        // Firebase Config (REPLACE WITH YOURS)
+        const firebaseConfig = {
 
   apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
 
@@ -209,155 +234,150 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        let allProfiles = [];
-        let activeUser = null;
-        let targetId = null;
+
+        let profiles = [];
+        let currentProfile = null;
+        let selectedId = null;
 
         // Load Profiles
-        onSnapshot(collection(db, "profiles"), (snap) => {
-            allProfiles = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            const list = document.getElementById('profiles-list');
-            list.innerHTML = allProfiles.map(p => `
-                <div class="profile-card" onclick="openLogin('${p.id}')">
-                    <div style="font-size:30px">👤</div>
-                    <div style="margin-top:10px; font-weight:bold;">${p.name}</div>
-                </div>
-            `).join('');
+        onSnapshot(collection(db, "profiles"), (snapshot) => {
+            profiles = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderProfiles();
         });
 
-        window.createNewProfile = async () => {
-            const name = document.getElementById('p-name').value;
-            const pin = document.getElementById('p-pin').value;
+        window.renderProfiles = () => {
+            const list = document.getElementById('profiles-list');
+            list.innerHTML = profiles.map(p => `
+                <div class="profile-card" onclick="openLogin('${p.id}')">
+                    <div style="font-size:40px">👤</div>
+                    <div style="color:white; font-weight:600">${p.name}</div>
+                </div>
+            `).join('');
+        };
+
+        window.createProfile = async () => {
+            const name = document.getElementById('new-name').value;
+            const pin = document.getElementById('new-pin').value;
             if(name && pin.length === 4) {
                 await setDoc(doc(db, "profiles", Date.now().toString()), {
                     name, pin, data: { words: [], sentences: [], courses: [] }
                 });
-                hideModal('create-profile-modal');
+                hideModal('create-modal');
             }
         };
 
         window.openLogin = (id) => {
-            targetId = id;
-            document.getElementById('login-title').innerText = "Enter PIN";
-            document.getElementById('l-pin').value = '';
-            document.getElementById('login-confirm').onclick = () => verifyPin('login');
-            showModal('login-modal');
+            selectedId = id;
+            document.getElementById('pin-title').innerText = "Login Access";
+            document.getElementById('enter-pin').value = '';
+            document.getElementById('pin-confirm-btn').onclick = verifyLogin;
+            showModal('pin-modal');
         };
 
-        window.triggerDelete = () => {
-            if(confirm("Delete this entire profile permanently?")) {
-                targetId = activeUser.id;
-                document.getElementById('login-title').innerText = "Confirm PIN to Delete";
-                document.getElementById('l-pin').value = '';
-                document.getElementById('login-confirm').onclick = () => verifyPin('delete');
-                showModal('login-modal');
-            }
-        };
-
-        async function verifyPin(mode) {
-            const pin = document.getElementById('l-pin').value;
-            const user = allProfiles.find(p => p.id === targetId);
-            if(pin === user.pin) {
-                if(mode === 'delete') {
-                    await deleteDoc(doc(db, "profiles", targetId));
-                    location.reload();
-                } else {
-                    activeUser = user;
-                    onSnapshot(doc(db, "profiles", activeUser.id), (doc) => {
-                        activeUser = {id: doc.id, ...doc.data()};
-                        updateUI();
-                    });
-                    document.getElementById('profile-screen').style.display = 'none';
-                    document.getElementById('main-app').classList.add('active');
-                    document.getElementById('user-display').innerText = activeUser.name;
-                    hideModal('login-modal');
-                }
+        async function verifyLogin() {
+            const pin = document.getElementById('enter-pin').value;
+            const p = profiles.find(x => x.id === selectedId);
+            if(pin === p.pin) {
+                currentProfile = p;
+                onSnapshot(doc(db, "profiles", p.id), (doc) => {
+                    currentProfile = { id: doc.id, ...doc.data() };
+                    refreshUI();
+                });
+                document.getElementById('profile-screen').style.display = 'none';
+                document.getElementById('main-app').classList.add('active');
+                document.getElementById('current-profile-name').innerText = p.name;
+                hideModal('pin-modal');
             } else { alert("Wrong PIN"); }
         }
 
-        // Logic for Words/Sentences
-        window.handleWordAdd = async (e) => {
+        window.triggerDeleteProfile = () => {
+            if(confirm("Permanently delete this profile?")) {
+                selectedId = currentProfile.id;
+                document.getElementById('pin-title').innerText = "Confirm PIN to Delete";
+                document.getElementById('enter-pin').value = '';
+                document.getElementById('pin-confirm-btn').onclick = finalizeDelete;
+                showModal('pin-modal');
+            }
+        };
+
+        async function finalizeDelete() {
+            const pin = document.getElementById('enter-pin').value;
+            if(pin === currentProfile.pin) {
+                await deleteDoc(doc(db, "profiles", currentProfile.id));
+                location.reload();
+            } else { alert("Wrong PIN. Deletion cancelled."); }
+        }
+
+        // Add Logic
+        window.addWord = async (e) => {
             e.preventDefault();
-            const word = {
-                id: Date.now().toString(),
-                word: document.getElementById('w-input').value,
-                meaning: document.getElementById('w-meaning').value,
-                course: document.getElementById('w-course').value,
-                date: new Date().toLocaleDateString('en-GB')
-            };
-            await updateDoc(doc(db, "profiles", activeUser.id), { "data.words": arrayUnion(word) });
+            const w = { id: Date.now().toString(), word: document.getElementById('word-input').value, meaning: document.getElementById('word-meaning').value, example: document.getElementById('word-example').value, course: document.getElementById('word-course').value, date: new Date().toLocaleDateString() };
+            await updateDoc(doc(db, "profiles", currentProfile.id), { "data.words": arrayUnion(w) });
             e.target.reset();
         };
 
-        window.handleSentenceAdd = async (e) => {
+        window.addSentence = async (e) => {
             e.preventDefault();
-            const sentence = {
-                id: Date.now().toString(),
-                text: document.getElementById('s-input').value,
-                course: document.getElementById('s-course').value,
-                date: new Date().toLocaleDateString('en-GB')
-            };
-            await updateDoc(doc(db, "profiles", activeUser.id), { "data.sentences": arrayUnion(sentence) });
+            const s = { id: Date.now().toString(), text: document.getElementById('sentence-input').value, notes: document.getElementById('sentence-notes').value, course: document.getElementById('sentence-course').value, date: new Date().toLocaleDateString() };
+            await updateDoc(doc(db, "profiles", currentProfile.id), { "data.sentences": arrayUnion(s) });
             e.target.reset();
         };
 
-        window.handleCourseAdd = async (e) => {
+        window.addCourse = async (e) => {
             e.preventDefault();
-            const course = { id: Date.now().toString(), name: document.getElementById('c-name').value, date: new Date().toLocaleDateString('en-GB') };
-            await updateDoc(doc(db, "profiles", activeUser.id), { "data.courses": arrayUnion(course) });
+            const c = { id: Date.now().toString(), name: document.getElementById('course-name').value, desc: document.getElementById('course-desc').value, date: new Date().toLocaleDateString() };
+            await updateDoc(doc(db, "profiles", currentProfile.id), { "data.courses": arrayUnion(c) });
             e.target.reset();
         };
 
-        window.deleteItem = async (listName, item) => {
-            const field = `data.${listName}`;
-            await updateDoc(doc(db, "profiles", activeUser.id), { [field]: arrayRemove(item) });
+        window.deleteItem = async (list, item) => {
+            const path = `data.${list}`;
+            await updateDoc(doc(db, "profiles", currentProfile.id), { [path]: arrayRemove(item) });
         };
 
-        function updateUI() {
-            // Update Dropdowns
-            const options = '<option value="">No Course</option>' + activeUser.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            document.getElementById('w-course').innerHTML = options;
-            document.getElementById('s-course').innerHTML = options;
+        function refreshUI() {
+            const data = currentProfile.data;
+            const courseOpts = '<option value="">No Course</option>' + data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            document.getElementById('word-course').innerHTML = courseOpts;
+            document.getElementById('sentence-course').innerHTML = courseOpts;
 
-            // Render Lists
-            document.getElementById('words-list-display').innerHTML = activeUser.data.words.map(w => `
+            document.getElementById('words-list').innerHTML = data.words.map(w => `
                 <div class="item-card">
-                    <button class="trash-btn" onclick='deleteItem("words", ${JSON.stringify(w)})'>🗑️</button>
+                    <button style="float:right; background:none; border:none; cursor:pointer" onclick='deleteItem("words", ${JSON.stringify(w)})'>🗑️</button>
                     <div class="item-title">${w.word}</div>
-                    <div class="item-text">${w.meaning}</div>
+                    <div class="item-content"><strong>Meaning:</strong> ${w.meaning}</div>
                     <div class="item-meta">📅 ${w.date}</div>
                 </div>`).join('');
 
-            document.getElementById('sentences-list-display').innerHTML = activeUser.data.sentences.map(s => `
+            document.getElementById('sentences-list').innerHTML = data.sentences.map(s => `
                 <div class="item-card">
-                    <button class="trash-btn" onclick='deleteItem("sentences", ${JSON.stringify(s)})'>🗑️</button>
-                    <div class="item-text" style="font-weight:600">"${s.text}"</div>
+                    <button style="float:right; background:none; border:none; cursor:pointer" onclick='deleteItem("sentences", ${JSON.stringify(s)})'>🗑️</button>
+                    <div class="item-content" style="font-weight:600">"${s.text}"</div>
                     <div class="item-meta">📅 ${s.date}</div>
                 </div>`).join('');
 
-            document.getElementById('courses-list-display').innerHTML = activeUser.data.courses.map(c => {
-                const wCount = activeUser.data.words.filter(w => w.course === c.id).length;
-                return `<div class="item-card">
-                    <button class="trash-btn" onclick='deleteItem("courses", ${JSON.stringify(c)})'>🗑️</button>
-                    <div class="item-title">${c.name}</div>
-                    <div class="item-meta">📖 ${wCount} words • 📅 ${c.date}</div>
-                </div>`;
-            }).join('');
+            document.getElementById('courses-list').innerHTML = data.courses.map(c => `
+                <div class="course-item">
+                    <button style="float:right; background:none; border:none; cursor:pointer" onclick='deleteItem("courses", ${JSON.stringify(c)})'>🗑️</button>
+                    <div class="course-title">${c.name}</div>
+                    <div class="course-stats">📖 ${data.words.filter(w=>w.course===c.id).length} words • 📅 ${c.date}</div>
+                </div>`).join('');
 
-            document.getElementById('study-list-display').innerHTML = activeUser.data.words.map(w => `
-                <div class="item-card" style="border-left: 4px solid #00d4ff">
-                    <div class="item-title" style="color:#00d4ff">${w.word}</div>
-                    <div class="item-text">${w.meaning}</div>
+            document.getElementById('study-list').innerHTML = data.words.map(w => `
+                <div class="dictionary-card">
+                    <div class="dictionary-word">${w.word}</div>
+                    <div class="dictionary-meaning">${w.meaning}</div>
                 </div>`).join('');
         }
 
-        window.switchTab = (e, sectionId) => {
+        window.switchTab = (e, id) => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             e.target.classList.add('active');
-            document.getElementById(sectionId).classList.add('active');
+            document.getElementById(id + '-section').classList.add('active');
         };
 
+        window.showCreateProfileModal = () => showModal('create-modal');
         window.showModal = (id) => document.getElementById(id).classList.add('active');
         window.hideModal = (id) => document.getElementById(id).classList.remove('active');
     </script>

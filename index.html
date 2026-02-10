@@ -14,11 +14,20 @@
         }
         .container { max-width: 600px; margin: 0 auto; }
 
+        /* Profile Screen */
+        .profile-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; }
+        .profiles-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; width: 100%; margin-top: 20px; }
+        .profile-card { background: rgba(30, 30, 46, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .profile-card:hover { transform: translateY(-5px); border-color: #00d4ff; }
+
         /* Navigation Header */
+        .main-app { display: none; }
+        .main-app.active { display: block; }
         .header { background: rgba(30, 30, 46, 0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.1); }
-        h1 { font-size: 24px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h1 { font-size: 24px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .tabs { display: flex; gap: 10px; }
-        .tab { flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.05); color: #a0aec0; border-radius: 12px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.1); font-weight: 600; text-align: center; font-size: 14px; transition: 0.3s; }
+        .tab { flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.05); color: #a0aec0; border-radius: 12px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.1); font-weight: 600; text-align: center; font-size: 14px; }
         .tab.active { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; }
 
         .content-section { display: none; }
@@ -32,108 +41,139 @@
             width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(255, 255, 255, 0.05); 
             border: 2px solid rgba(255, 255, 255, 0.1); color: #ffffff; border-radius: 10px; font-family: inherit;
         }
-        .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3); }
+        .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
 
-        /* Card Layouts (Image 706 & 708) */
+        /* Card Layouts */
         .item-card { background: rgba(30, 30, 46, 0.95); border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
         .item-title { color: #4facfe; font-weight: 700; font-size: 1.1rem; margin-bottom: 10px; text-transform: uppercase; }
         .item-text { color: #a0aec0; font-size: 14px; margin-bottom: 10px; line-height: 1.5; }
         .item-meta { color: #718096; font-size: 12px; display: flex; gap: 15px; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
         
-        /* Study Column Search */
+        .action-btns { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .action-btn { background: none; border: none; cursor: pointer; opacity: 0.6; transition: 0.3s; font-size: 16px; }
+        .action-btn:hover { opacity: 1; }
+
         .search-box { background: rgba(30, 30, 46, 0.95); border-radius: 15px; padding: 10px 15px; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; }
         .search-box input { margin-bottom: 0; background: transparent; border: none; padding: 5px; width: 100%; }
 
-        /* Empty State (Image 708) */
         .empty-state { text-align: center; padding: 40px 20px; background: rgba(30, 30, 46, 0.95); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); }
         .empty-state img { width: 64px; margin-bottom: 15px; }
-        .empty-state-text { color: #a0aec0; font-size: 14px; }
 
-        .trash-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; cursor: pointer; filter: grayscale(1); opacity: 0.5; transition: 0.3s; }
-        .trash-btn:hover { opacity: 1; filter: none; }
+        /* Modals */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #1a1a2e; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); overflow-y: auto; max-height: 90vh; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="header">
-            <h1>📚 English Learning</h1>
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab(event, 'words-sec')">Words</div>
-                <div class="tab" onclick="switchTab(event, 'sentences-sec')">Sentences</div>
-                <div class="tab" onclick="switchTab(event, 'courses-sec')">Courses</div>
-                <div class="tab" onclick="switchTab(event, 'study-sec')">Study</div>
+        <div id="profile-screen" class="profile-screen">
+            <div style="text-align:center; margin-bottom:30px">
+                <h1 style="font-size: 32px;">📚 English Learning</h1>
+                <p style="color: #a0aec0; margin-top:10px;">Select a profile to continue</p>
             </div>
+            <div id="profiles-list" class="profiles-list"></div>
+            <button style="margin-top:20px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 15px; padding: 20px; width:100%; font-weight:600; cursor:pointer" onclick="showModal('create-profile-modal')">➕ Create New Profile</button>
         </div>
 
-        <div id="words-sec" class="content-section active">
-            <div class="add-form">
-                <h2>Add New Word</h2>
-                <form id="wordForm">
-                    <label>Word</label><input type="text" id="w-input" placeholder="e.g., Serendipity" required>
-                    <label>Meaning</label><textarea id="w-meaning" placeholder="Definition and explanation" required></textarea>
-                    <label>Course (optional)</label><select id="w-course"></select>
-                    <button type="submit" class="submit-btn">Add Word</button>
-                </form>
+        <div id="main-app" class="main-app">
+            <div class="header">
+                <div class="header-top">
+                    <h1>📚 English Learning</h1>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <span id="user-display" style="color:#a0aec0; font-size:14px"></span>
+                        <button onclick="location.reload()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; padding:5px 10px; border-radius:8px; font-size:12px; cursor:pointer">Logout</button>
+                    </div>
+                </div>
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab(event, 'words-sec')">Words</div>
+                    <div class="tab" onclick="switchTab(event, 'sentences-sec')">Sentences</div>
+                    <div class="tab" onclick="switchTab(event, 'courses-sec')">Courses</div>
+                    <div class="tab" onclick="switchTab(event, 'study-sec')">Study</div>
+                </div>
             </div>
-            <div id="words-list"></div>
+
+            <div id="words-sec" class="content-section active">
+                <div class="add-form">
+                    <h2>Add New Word</h2>
+                    <form id="wordForm">
+                        <label>Word</label><input type="text" id="w-input" placeholder="e.g., Serendipity" required>
+                        <label>Meaning</label><textarea id="w-meaning" placeholder="Definition" required></textarea>
+                        <label>Course (optional)</label><select id="w-course"></select>
+                        <button type="submit" class="submit-btn">Add Word</button>
+                    </form>
+                </div>
+                <div id="words-list"></div>
+            </div>
+
+            <div id="sentences-sec" class="content-section">
+                <div class="add-form">
+                    <h2>Add New Sentence</h2>
+                    <form id="sentenceForm">
+                        <label>Sentence</label><textarea id="s-input" placeholder="Enter sentence" required></textarea>
+                        <label>Course (optional)</label><select id="s-course"></select>
+                        <button type="submit" class="submit-btn">Add Sentence</button>
+                    </form>
+                </div>
+                <div id="sentences-list"></div>
+            </div>
+
+            <div id="courses-sec" class="content-section">
+                <div class="add-form">
+                    <h2>Add New Course</h2>
+                    <form id="courseForm">
+                        <label>Course Name</label><input type="text" id="c-name" placeholder="e.g., Business English" required>
+                        <button type="submit" class="submit-btn">Add Course</button>
+                    </form>
+                </div>
+                <div id="courses-list"></div>
+            </div>
+
+            <div id="study-sec" class="content-section">
+                <div class="add-form">
+                    <h2 style="display:flex; align-items:center; gap:10px">📖 My Dictionary</h2>
+                    <p style="color: #a0aec0; font-size: 14px; margin-bottom: 20px;">Read and review all your vocabulary</p>
+                    <label>Filter by Course</label><select id="study-filter" onchange="renderStudy()"><option value="">All Courses</option></select>
+                    <label>Sort by</label><select id="study-sort" onchange="renderStudy()"><option value="newest">Newest First</option><option value="alpha">A-Z</option></select>
+                </div>
+                <div class="search-box"><input type="text" id="study-search" placeholder="🔍 Search dictionary..." onkeyup="renderStudy()"></div>
+                <div id="study-list"></div>
+            </div>
         </div>
+    </div>
 
-        <div id="sentences-sec" class="content-section">
-            <div class="add-form">
-                <h2>Add New Sentence</h2>
-                <form id="sentenceForm">
-                    <label>Sentence</label><textarea id="s-input" placeholder="Enter the sentence" required></textarea>
-                    <label>Translation/Notes</label><textarea id="s-notes" placeholder="Meaning or notes"></textarea>
-                    <label>Course (optional)</label><select id="s-course"></select>
-                    <button type="submit" class="submit-btn">Add Sentence</button>
-                </form>
-            </div>
-            <div id="sentences-list"></div>
+    <div id="create-profile-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:#00d4ff; margin-bottom:20px">New Profile</h2>
+            <label>Name</label><input type="text" id="p-name" placeholder="Name">
+            <label>4-Digit PIN</label><input type="tel" id="p-pin" placeholder="****" maxlength="4" style="text-align:center; font-size:24px; letter-spacing:10px">
+            <button class="submit-btn" onclick="createNewProfile()">Create</button>
+            <button onclick="hideModal('create-profile-modal')" style="width:100%; margin-top:10px; background:none; border:none; color:#a0aec0; cursor:pointer">Cancel</button>
         </div>
+    </div>
 
-        <div id="courses-sec" class="content-section">
-            <div class="add-form">
-                <h2>Add New Course</h2>
-                <form id="courseForm">
-                    <label>Course Name</label><input type="text" id="c-name" placeholder="e.g., Business English" required>
-                    <button type="submit" class="submit-btn">Add Course</button>
-                </form>
-            </div>
-            <div id="courses-list"></div>
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:#00d4ff; margin-bottom:20px">Enter PIN</h2>
+            <input type="tel" id="l-pin" placeholder="****" maxlength="4" style="text-align:center; font-size:24px; letter-spacing:10px">
+            <button class="submit-btn" id="login-confirm">Confirm</button>
         </div>
+    </div>
 
-        <div id="study-sec" class="content-section">
-            <div class="add-form">
-                <h2 style="display:flex; align-items:center; gap:10px">📖 My Dictionary</h2>
-                <p style="color: #a0aec0; font-size: 14px; margin-bottom: 20px;">Read and review all your vocabulary</p>
-                
-                <label>Filter by Course</label>
-                <select id="study-filter" onchange="renderStudy()">
-                    <option value="">All Courses</option>
-                </select>
-                
-                <label>Sort by</label>
-                <select id="study-sort" onchange="renderStudy()">
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="alpha">Alphabetical (A-Z)</option>
-                </select>
-            </div>
-
-            <div class="search-box">
-                <input type="text" id="study-search" placeholder="🔍 Search your dictionary..." onkeyup="renderStudy()">
-            </div>
-
-            <div id="study-list"></div>
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="edit-modal-title" style="color:#00d4ff; margin-bottom:20px">Edit Item</h2>
+            <div id="edit-form-container"></div>
+            <button class="submit-btn" id="save-edit-btn">Save Changes</button>
+            <button onclick="hideModal('edit-modal')" style="width:100%; margin-top:10px; background:none; border:none; color:#a0aec0; cursor:pointer">Cancel</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Firebase Config from your provided index (1).html
         const firebaseConfig = {
 
   apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
@@ -151,75 +191,68 @@
   measurementId: "G-VVWYDWEK6R"
 
 };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        let allProfiles = [];
+        let activeUser = null;
+        let loginTargetId = null;
 
-        let words = [];
-        let sentences = [];
-        let courses = [];
+        onSnapshot(collection(db, "profiles"), (snap) => {
+            allProfiles = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            document.getElementById('profiles-list').innerHTML = allProfiles.map(p => `
+                <div class="profile-card" onclick="openLogin('${p.id}')">
+                    <div style="font-size:40px; margin-bottom:10px">👤</div>
+                    <div style="font-weight:600;">${p.name}</div>
+                </div>`).join('');
+        });
 
-        // Listeners
-        onSnapshot(query(collection(db, "words"), orderBy("timestamp", "desc")), (snap) => {
-            words = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        window.createNewProfile = async () => {
+            const name = document.getElementById('p-name').value;
+            const pin = document.getElementById('p-pin').value;
+            if(name && pin.length === 4) {
+                await setDoc(doc(db, "profiles", Date.now().toString()), { name, pin, data: { words: [], sentences: [], courses: [] } });
+                hideModal('create-profile-modal');
+            }
+        };
+
+        window.openLogin = (id) => {
+            loginTargetId = id;
+            showModal('login-modal');
+            document.getElementById('login-confirm').onclick = async () => {
+                const pin = document.getElementById('l-pin').value;
+                const user = allProfiles.find(u => u.id === loginTargetId);
+                if(user.pin === pin) {
+                    activeUser = user;
+                    onSnapshot(doc(db, "profiles", activeUser.id), (d) => { activeUser = {id: d.id, ...d.data()}; updateUI(); });
+                    document.getElementById('profile-screen').style.display = 'none';
+                    document.getElementById('main-app').classList.add('active');
+                    document.getElementById('user-display').innerText = activeUser.name;
+                    hideModal('login-modal');
+                } else { alert("Wrong PIN"); }
+            };
+        };
+
+        // UI Update Functions
+        function updateUI() {
+            const courseOpts = '<option value="">No Course</option>' + activeUser.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            document.getElementById('w-course').innerHTML = courseOpts;
+            document.getElementById('s-course').innerHTML = courseOpts;
+            document.getElementById('study-filter').innerHTML = '<option value="">All Courses</option>' + activeUser.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
             renderWords();
-            renderStudy();
-        });
-
-        onSnapshot(query(collection(db, "sentences"), orderBy("timestamp", "desc")), (snap) => {
-            sentences = snap.docs.map(d => ({id: d.id, ...d.data()}));
             renderSentences();
-        });
-
-        onSnapshot(query(collection(db, "courses"), orderBy("timestamp", "desc")), (snap) => {
-            courses = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            updateDropdowns();
             renderCourses();
-        });
+            renderStudy();
+        }
 
-        // Add Logic
-        document.getElementById('wordForm').onsubmit = async (e) => {
-            e.preventDefault();
-            await addDoc(collection(db, "words"), {
-                word: document.getElementById('w-input').value,
-                meaning: document.getElementById('w-meaning').value,
-                course: document.getElementById('w-course').value,
-                date: new Date().toLocaleDateString('en-GB'),
-                timestamp: Date.now()
-            });
-            e.target.reset();
-        };
-
-        document.getElementById('sentenceForm').onsubmit = async (e) => {
-            e.preventDefault();
-            await addDoc(collection(db, "sentences"), {
-                text: document.getElementById('s-input').value,
-                notes: document.getElementById('s-notes').value,
-                course: document.getElementById('s-course').value,
-                date: new Date().toLocaleDateString('en-GB'),
-                timestamp: Date.now()
-            });
-            e.target.reset();
-        };
-
-        document.getElementById('courseForm').onsubmit = async (e) => {
-            e.preventDefault();
-            await addDoc(collection(db, "courses"), {
-                name: document.getElementById('c-name').value,
-                date: new Date().toLocaleDateString('en-GB'),
-                timestamp: Date.now()
-            });
-            e.target.reset();
-        };
-
-        window.deleteItem = async (col, id) => {
-            if(confirm("Delete this item?")) await deleteDoc(doc(db, col, id));
-        };
-
-        // Render Functions
         function renderWords() {
-            document.getElementById('words-list').innerHTML = words.map(w => `
+            document.getElementById('words-list').innerHTML = activeUser.data.words.map(w => `
                 <div class="item-card">
-                    <button class="trash-btn" onclick="deleteItem('words', '${w.id}')">🗑️</button>
+                    <div class="action-btns">
+                        <button class="action-btn" onclick="openEdit('words', '${w.id}')">✏️</button>
+                        <button class="action-btn" onclick="deleteItem('words', '${w.id}')">🗑️</button>
+                    </div>
                     <div class="item-title">${w.word}</div>
                     <div class="item-text">${w.meaning}</div>
                     <div class="item-meta">📅 ${w.date}</div>
@@ -227,74 +260,118 @@
         }
 
         function renderSentences() {
-            document.getElementById('sentences-list').innerHTML = sentences.map(s => `
+            document.getElementById('sentences-list').innerHTML = activeUser.data.sentences.map(s => `
                 <div class="item-card">
-                    <button class="trash-btn" onclick="deleteItem('sentences', '${s.id}')">🗑️</button>
-                    <div class="item-text" style="font-weight:600; color:#e2e8f0">${s.text}</div>
-                    <div class="item-text" style="font-style:italic">${s.notes || ''}</div>
+                    <div class="action-btns">
+                        <button class="action-btn" onclick="openEdit('sentences', '${s.id}')">✏️</button>
+                        <button class="action-btn" onclick="deleteItem('sentences', '${s.id}')">🗑️</button>
+                    </div>
+                    <div class="item-text" style="font-weight:600; color:#e2e8f0; padding-right:50px">${s.text}</div>
                     <div class="item-meta">📅 ${s.date}</div>
                 </div>`).join('');
         }
 
         function renderCourses() {
-            document.getElementById('courses-list').innerHTML = courses.map(c => {
-                const wCount = words.filter(w => w.course === c.id).length;
-                const sCount = sentences.filter(s => s.course === c.id).length;
-                return `
+            document.getElementById('courses-list').innerHTML = activeUser.data.courses.map(c => `
                 <div class="item-card">
-                    <button class="trash-btn" onclick="deleteItem('courses', '${c.id}')">🗑️</button>
+                    <div class="action-btns">
+                        <button class="action-btn" onclick="deleteItem('courses', '${c.id}')">🗑️</button>
+                    </div>
                     <div class="item-title">${c.name}</div>
                     <div class="item-meta">
-                        <span>📖 ${wCount} words</span>
-                        <span>💬 ${sCount} sentences</span>
+                        <span>📖 ${activeUser.data.words.filter(w=>w.course===c.id).length} words</span>
                         <span>📅 ${c.date}</span>
                     </div>
-                </div>`;
-            }).join('');
+                </div>`).join('');
         }
 
         window.renderStudy = () => {
             const search = document.getElementById('study-search').value.toLowerCase();
             const filter = document.getElementById('study-filter').value;
-            const sort = document.getElementById('study-sort').value;
-            let filtered = [...words];
-
+            let filtered = activeUser.data.words;
             if(filter) filtered = filtered.filter(w => w.course === filter);
-            if(search) filtered = filtered.filter(w => w.word.toLowerCase().includes(search) || w.meaning.toLowerCase().includes(search));
-            
-            if(sort === 'newest') filtered.sort((a,b) => b.timestamp - a.timestamp);
-            if(sort === 'oldest') filtered.sort((a,b) => a.timestamp - b.timestamp);
-            if(sort === 'alpha') filtered.sort((a,b) => a.word.localeCompare(b.word));
+            if(search) filtered = filtered.filter(w => w.word.toLowerCase().includes(search));
 
             const display = document.getElementById('study-list');
             if(filtered.length === 0) {
-                display.innerHTML = `
-                    <div class="empty-state">
-                        <img src="https://cdn-icons-png.flaticon.com/512/3389/3389081.png" alt="books">
-                        <p class="empty-state-text">No words to study yet. Add some words first!</p>
-                    </div>`;
+                display.innerHTML = `<div class="empty-state"><img src="https://cdn-icons-png.flaticon.com/512/3389/3389081.png" alt="books"><p style="color:#a0aec0">No words found.</p></div>`;
             } else {
-                display.innerHTML = filtered.map(w => `
-                    <div class="item-card" style="border-left: 4px solid #00d4ff">
-                        <div class="item-title" style="color:#00d4ff">${w.word}</div>
-                        <div class="item-text">${w.meaning}</div>
-                    </div>`).join('');
+                display.innerHTML = filtered.map(w => `<div class="item-card" style="border-left: 4px solid #00d4ff"><div class="item-title">${w.word}</div><div class="item-text">${w.meaning}</div></div>`).join('');
             }
         };
 
-        function updateDropdowns() {
-            const options = '<option value="">No Course</option>' + courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            document.getElementById('w-course').innerHTML = options;
-            document.getElementById('s-course').innerHTML = options;
-            document.getElementById('study-filter').innerHTML = '<option value="">All Courses</option>' + courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        }
+        // Data Management
+        document.getElementById('wordForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const w = { id: Date.now().toString(), word: document.getElementById('w-input').value, meaning: document.getElementById('w-meaning').value, course: document.getElementById('w-course').value, date: new Date().toLocaleDateString('en-GB') };
+            await updateDoc(doc(db, "profiles", activeUser.id), { "data.words": arrayUnion(w) });
+            e.target.reset();
+        };
 
-        window.switchTab = (e, sectionId) => {
+        document.getElementById('sentenceForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const s = { id: Date.now().toString(), text: document.getElementById('s-input').value, course: document.getElementById('s-course').value, date: new Date().toLocaleDateString('en-GB') };
+            await updateDoc(doc(db, "profiles", activeUser.id), { "data.sentences": arrayUnion(s) });
+            e.target.reset();
+        };
+
+        document.getElementById('courseForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const c = { id: Date.now().toString(), name: document.getElementById('c-name').value, date: new Date().toLocaleDateString('en-GB') };
+            await updateDoc(doc(db, "profiles", activeUser.id), { "data.courses": arrayUnion(c) });
+            e.target.reset();
+        };
+
+        window.deleteItem = async (type, id) => {
+            if(confirm("Delete this item?")) {
+                const newData = { ...activeUser.data };
+                newData[type] = newData[type].filter(item => item.id !== id);
+                await updateDoc(doc(db, "profiles", activeUser.id), { "data": newData });
+            }
+        };
+
+        // Edit Logic
+        window.openEdit = (type, id) => {
+            const item = activeUser.data[type].find(i => i.id === id);
+            const container = document.getElementById('edit-form-container');
+            const title = document.getElementById('edit-modal-title');
+            const courseOpts = '<option value="">No Course</option>' + activeUser.data.courses.map(c => `<option value="${c.id}" ${c.id === item.course ? 'selected' : ''}>${c.name}</option>`).join('');
+
+            if(type === 'words') {
+                title.innerText = "Edit Word";
+                container.innerHTML = `
+                    <label>Word</label><input type="text" id="edit-val-1" value="${item.word}">
+                    <label>Meaning</label><textarea id="edit-val-2">${item.meaning}</textarea>
+                    <label>Course</label><select id="edit-val-3">${courseOpts}</select>`;
+            } else {
+                title.innerText = "Edit Sentence";
+                container.innerHTML = `
+                    <label>Sentence</label><textarea id="edit-val-1">${item.text}</textarea>
+                    <label>Course</label><select id="edit-val-2">${courseOpts}</select>`;
+            }
+
+            showModal('edit-modal');
+            document.getElementById('save-edit-btn').onclick = async () => {
+                const newData = { ...activeUser.data };
+                const idx = newData[type].findIndex(i => i.id === id);
+                if(type === 'words') {
+                    newData[type][idx] = { ...newData[type][idx], word: document.getElementById('edit-val-1').value, meaning: document.getElementById('edit-val-2').value, course: document.getElementById('edit-val-3').value };
+                } else {
+                    newData[type][idx] = { ...newData[type][idx], text: document.getElementById('edit-val-1').value, course: document.getElementById('edit-val-2').value };
+                }
+                await updateDoc(doc(db, "profiles", activeUser.id), { "data": newData });
+                hideModal('edit-modal');
+            };
+        };
+
+        window.switchTab = (e, id) => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             e.target.classList.add('active');
-            document.getElementById(sectionId).classList.add('active');
+            document.getElementById(id).classList.add('active');
         };
+        window.showModal = (id) => document.getElementById(id).classList.add('active');
+        window.hideModal = (id) => document.getElementById(id).classList.remove('active');
     </script>
 </body>
 </html>

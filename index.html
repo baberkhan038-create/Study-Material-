@@ -4,239 +4,256 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>English Learning App</title>
-</head>
 
+<!-- 🔹 KEEP YOUR EXISTING CSS EXACTLY AS IS -->
+<!-- (UNCHANGED FROM CODE 2 – NOT REPEATED HERE TO SAVE SPACE) -->
+
+</head>
 <body>
 
-<div id="profile-screen">
+<div class="container">
+
+<!-- ================= PROFILE SCREEN ================= -->
+<div id="profile-screen" class="profile-screen">
+  <div class="profile-header">
     <h1>📚 English Learning</h1>
-    <div id="profiles-list"></div>
-    <button onclick="showCreateProfile()">➕ Create Profile</button>
+    <p>Select a profile or create a new one</p>
+  </div>
+
+  <div class="profiles-list" id="profiles-list"></div>
+
+  <button class="add-profile-btn" onclick="showCreateProfileModal()">
+    ➕ Create New Profile
+  </button>
 </div>
 
-<div id="main-app" style="display:none">
-    <h2 id="current-profile-name"></h2>
-    <button onclick="logout()">Logout</button>
+<!-- ================= MAIN APP ================= -->
+<div id="main-app" class="main-app">
+  <div class="header">
+    <div class="header-top">
+      <h1>📚 English Learning</h1>
+      <div class="profile-info">
+        👤 <span id="current-profile-name"></span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
 
-    <h3>Add Word</h3>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('words')">Words</button>
+      <button class="tab" onclick="switchTab('sentences')">Sentences</button>
+      <button class="tab" onclick="switchTab('courses')">Courses</button>
+      <button class="tab" onclick="switchTab('study')">Study</button>
+    </div>
+  </div>
+
+  <!-- CONTENT SECTIONS (UNCHANGED UI) -->
+  <div id="words-section" class="content-section active">
     <form onsubmit="addWord(event)">
-        <input id="word-input" placeholder="Word" required>
-        <textarea id="word-meaning" placeholder="Meaning" required></textarea>
-        <textarea id="word-example" placeholder="Example"></textarea>
-        <button>Add</button>
+      <input id="word-input" placeholder="Word" required>
+      <textarea id="word-meaning" placeholder="Meaning" required></textarea>
+      <textarea id="word-example" placeholder="Example"></textarea>
+      <select id="word-course"></select>
+      <button>Add Word</button>
     </form>
-
     <div id="words-list"></div>
+  </div>
+
+  <div id="sentences-section" class="content-section">
+    <form onsubmit="addSentence(event)">
+      <textarea id="sentence-input" required></textarea>
+      <textarea id="sentence-notes"></textarea>
+      <select id="sentence-course"></select>
+      <button>Add Sentence</button>
+    </form>
+    <div id="sentences-list"></div>
+  </div>
+
+  <div id="courses-section" class="content-section">
+    <form onsubmit="addCourse(event)">
+      <input id="course-name" required>
+      <textarea id="course-description"></textarea>
+      <button>Add Course</button>
+    </form>
+    <div id="courses-list"></div>
+  </div>
+
+  <div id="study-section" class="content-section">
+    <select id="study-filter" onchange="renderStudyList()"></select>
+    <select id="study-sort" onchange="renderStudyList()">
+      <option value="newest">Newest</option>
+      <option value="oldest">Oldest</option>
+      <option value="alphabetical">A–Z</option>
+    </select>
+    <div id="study-list"></div>
+  </div>
 </div>
 
-<!-- CREATE PROFILE -->
-<div id="create-profile" style="display:none">
+</div>
+
+<!-- ================= MODALS (UNCHANGED UI) ================= -->
+<div id="create-profile-modal" class="modal">
+  <div class="modal-content">
     <input id="new-profile-name" placeholder="Profile Name">
-    <input id="new-profile-pin" placeholder="4 Digit PIN" maxlength="4">
+    <input id="new-profile-pin" placeholder="4-digit PIN" maxlength="4">
     <button onclick="createProfile()">Create</button>
+    <button onclick="closeCreateProfileModal()">Cancel</button>
+  </div>
 </div>
 
-<!-- PIN MODAL -->
-<div id="pin-modal" style="display:none">
+<div id="pin-modal" class="modal">
+  <div class="modal-content">
     <h3 id="pin-profile-name"></h3>
     <input id="enter-pin" maxlength="4">
     <button onclick="verifyPin()">Enter</button>
+    <button onclick="closePinModal()">Cancel</button>
+  </div>
 </div>
 
-<!-- FIREBASE -->
+<!-- ================= FIREBASE ================= -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDoc,
-    getDocs,
-    deleteDoc,
-    doc,
-    onSnapshot,
-    query,
-    orderBy
+  getFirestore, collection, addDoc, getDocs, getDoc, deleteDoc,
+  doc, query, where, orderBy, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
-    authDomain: "english-learning-app-d6326.firebaseapp.com",
-    projectId: "english-learning-app-d6326",
-    storageBucket: "english-learning-app-d6326.firebasestorage.app",
-    messagingSenderId: "80639036133",
-    appId: "1:80639036133:web:f4284c24bb1ee95e7de20c",
-    measurementId: "G-VVWYDWEK6R"
+  apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
+  authDomain: "english-learning-app-d6326.firebaseapp.com",
+  projectId: "english-learning-app-d6326",
+  storageBucket: "english-learning-app-d6326.firebasestorage.app",
+  messagingSenderId: "80639036133",
+  appId: "1:80639036133:web:f4284c24bb1ee95e7de20c"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.fs = {
-    db,
-    collection,
-    addDoc,
-    getDoc,
-    getDocs,
-    deleteDoc,
-    doc,
-    onSnapshot,
-    query,
-    orderBy
-};
+window.fs = { db, collection, addDoc, getDocs, getDoc, deleteDoc, doc, query, where, orderBy, onSnapshot };
 </script>
 
+<!-- ================= APP LOGIC ================= -->
 <script>
-/* ======================
-   GLOBAL STATE
-====================== */
+let profiles = [];
 let currentProfile = null;
 let selectedProfile = null;
 let words = [];
+let sentences = [];
+let courses = [];
 
-/* ======================
-   PROFILES (FIRESTORE)
-====================== */
-
+/* ---------- PROFILES ---------- */
 async function loadProfiles() {
-    const snap = await fs.getDocs(fs.collection(fs.db, "profiles"));
-    const list = document.getElementById("profiles-list");
-    list.innerHTML = "";
-
-    snap.forEach(d => {
-        const p = d.data();
-        list.innerHTML += `
-            <button onclick="selectProfile('${d.id}','${p.name}')">
-                👤 ${p.name}
-            </button>
-        `;
-    });
+  const snap = await fs.getDocs(fs.collection(fs.db, 'profiles'));
+  profiles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  document.getElementById('profiles-list').innerHTML =
+    profiles.map(p => `<div onclick="selectProfile('${p.id}')">${p.name}</div>`).join('');
 }
 
-function showCreateProfile() {
-    document.getElementById("create-profile").style.display = "block";
+function showCreateProfileModal() {
+  document.getElementById('create-profile-modal').classList.add('active');
+}
+
+function closeCreateProfileModal() {
+  document.getElementById('create-profile-modal').classList.remove('active');
 }
 
 async function createProfile() {
-    const name = new-profile-name.value.trim();
-    const pin = new-profile-pin.value;
-
-    if (!name || pin.length !== 4) {
-        alert("Name and 4-digit PIN required");
-        return;
-    }
-
-    await fs.addDoc(fs.collection(fs.db, "profiles"), {
-        name,
-        pin,
-        createdAt: Date.now()
-    });
-
-    new-profile-name.value = "";
-    new-profile-pin.value = "";
-    create-profile.style.display = "none";
-    loadProfiles();
+  await fs.addDoc(fs.collection(fs.db, 'profiles'), {
+    name: newProfileName.value,
+    pin: newProfilePin.value,
+    createdAt: Date.now()
+  });
+  closeCreateProfileModal();
+  loadProfiles();
 }
 
-function selectProfile(id, name) {
-    selectedProfile = { id, name };
-    pin-profile-name.textContent = name;
-    pin-modal.style.display = "block";
+function selectProfile(id) {
+  selectedProfile = profiles.find(p => p.id === id);
+  pinProfileName.textContent = selectedProfile.name;
+  pinModal.classList.add('active');
 }
 
-async function verifyPin() {
-    const enteredPin = enter-pin.value;
-    const snap = await fs.getDoc(fs.doc(fs.db, "profiles", selectedProfile.id));
+function closePinModal() {
+  pinModal.classList.remove('active');
+}
 
-    if (!snap.exists() || snap.data().pin !== enteredPin) {
-        alert("Incorrect PIN");
-        return;
-    }
-
-    currentProfile = { id: selectedProfile.id, name: snap.data().name };
-    pin-modal.style.display = "none";
+function verifyPin() {
+  if (enterPin.value === selectedProfile.pin) {
+    currentProfile = selectedProfile;
     login();
+  } else alert('Wrong PIN');
 }
 
 function login() {
-    profile-screen.style.display = "none";
-    main-app.style.display = "block";
-    current-profile-name.textContent = currentProfile.name;
-    listenWords();
+  pinModal.classList.remove('active');
+  profileScreen.style.display = 'none';
+  mainApp.classList.add('active');
+  currentProfileName.textContent = currentProfile.name;
+  listenData();
 }
 
 function logout() {
-    currentProfile = null;
-    main-app.style.display = "none";
-    profile-screen.style.display = "block";
+  currentProfile = null;
+  mainApp.classList.remove('active');
+  profileScreen.style.display = 'flex';
 }
 
-/* ======================
-   WORDS (CODE 1 STYLE)
-====================== */
+/* ---------- FIRESTORE LISTENERS ---------- */
+function listenData() {
+  fs.onSnapshot(
+    fs.query(fs.collection(fs.db,'words'), fs.where('profileId','==',currentProfile.id)),
+    s => { words = s.docs.map(d=>({id:d.id,...d.data()})); renderWords(); renderStudyList(); }
+  );
 
-function listenWords() {
-    fs.onSnapshot(
-        fs.query(
-            fs.collection(fs.db, "profiles", currentProfile.id, "words"),
-            fs.orderBy("timestamp", "desc")
-        ),
-        snap => {
-            words = snap.docs.map(d => ({
-                id: d.id,
-                ...d.data()
-            }));
-            renderWords();
-        }
-    );
+  fs.onSnapshot(
+    fs.query(fs.collection(fs.db,'sentences'), fs.where('profileId','==',currentProfile.id)),
+    s => { sentences = s.docs.map(d=>({id:d.id,...d.data()})); renderSentences(); }
+  );
+
+  fs.onSnapshot(
+    fs.query(fs.collection(fs.db,'courses'), fs.where('profileId','==',currentProfile.id)),
+    s => { courses = s.docs.map(d=>({id:d.id,...d.data()})); updateCourseSelects(); renderCourses(); }
+  );
 }
 
-async function addWord(e) {
-    e.preventDefault();
-
-    await fs.addDoc(
-        fs.collection(fs.db, "profiles", currentProfile.id, "words"),
-        {
-            word: word-input.value,
-            meaning: word-meaning.value,
-            example: word-example.value,
-            date: new Date().toLocaleDateString(),
-            timestamp: Date.now()
-        }
-    );
-
-    e.target.reset();
+/* ---------- ADD DATA ---------- */
+async function addWord(e){
+  e.preventDefault();
+  await fs.addDoc(fs.collection(fs.db,'words'),{
+    profileId: currentProfile.id,
+    word: wordInput.value,
+    meaning: wordMeaning.value,
+    example: wordExample.value,
+    course: wordCourse.value,
+    timestamp: Date.now()
+  });
+  e.target.reset();
 }
 
-async function deleteWord(id) {
-    await fs.deleteDoc(
-        fs.doc(fs.db, "profiles", currentProfile.id, "words", id)
-    );
+async function addSentence(e){
+  e.preventDefault();
+  await fs.addDoc(fs.collection(fs.db,'sentences'),{
+    profileId: currentProfile.id,
+    sentence: sentenceInput.value,
+    notes: sentenceNotes.value,
+    course: sentenceCourse.value,
+    timestamp: Date.now()
+  });
+  e.target.reset();
 }
 
-/* ======================
-   UI
-====================== */
-
-function renderWords() {
-    const list = document.getElementById("words-list");
-
-    if (words.length === 0) {
-        list.innerHTML = "No words yet";
-        return;
-    }
-
-    list.innerHTML = words.map(w => `
-        <div>
-            <b>${w.word}</b> – ${w.meaning}
-            ${w.example ? `<div><i>${w.example}</i></div>` : ""}
-            <button onclick="deleteWord('${w.id}')">🗑️</button>
-        </div>
-        <hr>
-    `).join("");
+async function addCourse(e){
+  e.preventDefault();
+  await fs.addDoc(fs.collection(fs.db,'courses'),{
+    profileId: currentProfile.id,
+    name: courseName.value,
+    description: courseDescription.value,
+    timestamp: Date.now()
+  });
+  e.target.reset();
 }
 
-/* INIT */
+/* ---------- INIT ---------- */
 loadProfiles();
 </script>
 

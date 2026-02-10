@@ -1,1356 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Learning App</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh;
-            padding: 20px;
-            padding-bottom: 80px;
-            animation: gradientShift 15s ease infinite;
-            background-size: 200% 200%;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background: rgba(30, 30, 46, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            animation: slideDown 0.6s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1 {
-            color: #4facfe;
-            font-size: 24px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: textShine 3s ease-in-out infinite;
-        }
-
-        @keyframes textShine {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        .sync-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: #a0aec0;
-            margin-top: 8px;
-        }
-
-        .sync-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ccc;
-        }
-
-        .sync-indicator.connected {
-            background: #4caf50;
-            animation: pulse 2s infinite;
-        }
-
-        .sync-indicator.syncing {
-            background: #ff9800;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #a0aec0;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tab::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(0, 212, 255, 0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .tab:active::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
-            color: white;
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.5);
-            border: 1px solid transparent;
-        }
-
-        .content-section {
-            display: none;
-        }
-
-        .content-section.active {
-            display: block;
-        }
-
-        .add-form {
-            background: rgba(30, 30, 46, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #e2e8f0;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: inherit;
-            transition: all 0.3s ease;
-        }
-
-        input::placeholder, textarea::placeholder {
-            color: #718096;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #00d4ff;
-            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-            box-shadow: 0 2px 15px rgba(0, 212, 255, 0.6);
-        }
-
-        .btn:disabled {
-            background: rgba(255, 255, 255, 0.1);
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .items-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .item-card {
-            background: rgba(30, 30, 46, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            position: relative;
-            animation: fadeInUp 0.5s ease-out;
-            transition: all 0.3s ease;
-        }
-
-        .item-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-            border-color: rgba(0, 212, 255, 0.3);
-        }
-
-        .item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 10px;
-        }
-
-        .item-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #e2e8f0;
-            flex: 1;
-        }
-
-        .item-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-            opacity: 0.7;
-            transition: all 0.3s ease;
-            border-radius: 50%;
-        }
-
-        .icon-btn:hover {
-            opacity: 1;
-            transform: scale(1.2);
-            background: rgba(0, 212, 255, 0.2);
-        }
-
-        .icon-btn:active {
-            transform: scale(0.9);
-        }
-
-        .item-content {
-            color: #a0aec0;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 8px;
-        }
-
-        .item-meta {
-            font-size: 12px;
-            color: #718096;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .course-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 8px;
-            box-shadow: 0 2px 10px rgba(0, 212, 255, 0.4);
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .empty-state {
-            background: rgba(30, 30, 46, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 40px 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-            animation: bounce 2s ease-in-out infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .empty-state-text {
-            color: #a0aec0;
-            font-size: 16px;
-        }
-
-        .search-box {
-            background: rgba(30, 30, 46, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            animation: fadeInUp 0.5s ease-out 0.2s backwards;
-            transition: all 0.3s ease;
-        }
-
-        .search-box:focus-within {
-            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
-            border-color: rgba(0, 212, 255, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .search-box input {
-            border: none;
-            padding: 8px;
-        }
-
-        .course-item {
-            background: rgba(30, 30, 46, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            margin-bottom: 15px;
-            animation: fadeInUp 0.5s ease-out;
-            transition: all 0.3s ease;
-        }
-
-        .course-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-            border-color: rgba(0, 212, 255, 0.3);
-        }
-
-        .course-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #4facfe;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .course-description {
-            color: #a0aec0;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .course-stats {
-            display: flex;
-            gap: 15px;
-            margin-top: 12px;
-            font-size: 13px;
-            color: #718096;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .dictionary-card {
-            background: rgba(30, 30, 46, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            margin-bottom: 15px;
-            border-left: 4px solid #00d4ff;
-            animation: fadeInUp 0.5s ease-out;
-            transition: all 0.3s ease;
-        }
-
-        .dictionary-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-            border-left-width: 6px;
-        }
-
-        .dictionary-word {
-            font-size: 24px;
-            font-weight: 700;
-            color: #4facfe;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .word-number {
-            font-size: 14px;
-            color: #718096;
-            font-weight: 400;
-        }
-
-        .dictionary-meaning {
-            color: #e2e8f0;
-            font-size: 15px;
-            line-height: 1.8;
-            margin-bottom: 12px;
-        }
-
-        .dictionary-example {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(123, 47, 247, 0.1) 100%);
-            padding: 12px;
-            border-radius: 8px;
-            color: #a0aec0;
-            font-style: italic;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-top: 12px;
-            border-left: 3px solid #00d4ff;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .dictionary-example:before {
-            content: "💡 ";
-            margin-right: 5px;
-        }
-
-        .stats-bar {
-            background: rgba(30, 30, 46, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            display: flex;
-            justify-content: space-around;
-            text-align: center;
-            animation: fadeInUp 0.5s ease-out 0.1s backwards;
-        }
-
-        .stats-item {
-            flex: 1;
-            transition: transform 0.3s ease;
-        }
-
-        .stats-item:hover {
-            transform: scale(1.1);
-        }
-
-        .stats-number {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: countUp 0.5s ease-out;
-        }
-
-        @keyframes countUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .stats-label {
-            font-size: 12px;
-            color: #718096;
-            margin-top: 4px;
-        }
-
-        .setup-notice {
-            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.1) 100%);
-            border: 2px solid rgba(255, 193, 7, 0.5);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.2);
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .setup-notice h3 {
-            color: #ffc107;
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-
-        .setup-notice p {
-            color: #cbd5e0;
-            line-height: 1.6;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .setup-notice code {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 13px;
-            color: #00d4ff;
-        }
-
-        .setup-steps {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-
-        .setup-steps ol {
-            margin-left: 20px;
-        }
-
-        .setup-steps li {
-            margin-bottom: 10px;
-            color: #cbd5e0;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 15px;
-                padding-bottom: 80px;
-            }
-
-            .header {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 20px;
-            }
-
-            .tab {
-                font-size: 12px;
-                padding: 8px;
-            }
-
-            .dictionary-word {
-                font-size: 20px;
-            }
-
-            .stats-number {
-                font-size: 20px;
-            }
-
-            .item-card:hover {
-                transform: none;
-            }
-
-            .dictionary-card:hover {
-                transform: none;
-            }
-
-            .course-item:hover {
-                transform: none;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Learning App</title>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📚 English Learning</h1>
-            <div class="sync-status">
-                <div class="sync-indicator" id="sync-indicator"></div>
-                <span id="sync-text">Setting up...</span>
-            </div>
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('words')">Words</button>
-                <button class="tab" onclick="switchTab('sentences')">Sentences</button>
-                <button class="tab" onclick="switchTab('courses')">Courses</button>
-                <button class="tab" onclick="switchTab('study')">Study</button>
-            </div>
-        </div>
 
-        <!-- Setup Notice -->
-        <div id="setup-notice" class="setup-notice" style="display: none;">
-            <h3>⚠️ Firebase Setup Required</h3>
-            <p>To enable cloud sync between your devices, please configure Firebase:</p>
-            <div class="setup-steps">
-                <ol>
-                    <li>Go to <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a></li>
-                    <li>Create a new project (free)</li>
-                    <li>Add a Web App to your project</li>
-                    <li>Copy your Firebase config</li>
-                    <li>Paste it in the JavaScript section of this file (line ~850)</li>
-                    <li>Enable <strong>Firestore Database</strong> in Firebase Console</li>
-                    <li>Set rules to: <code>allow read, write: if true;</code> (for testing)</li>
-                </ol>
-            </div>
-        </div>
+<div class="container">
 
-        <!-- Words Section -->
-        <div id="words-section" class="content-section active">
-            <div class="add-form">
-                <h2 style="margin-bottom: 15px; color: #333; font-size: 18px;">Add New Word</h2>
-                <form id="word-form" onsubmit="addWord(event)">
-                    <div class="form-group">
-                        <label>Word</label>
-                        <input type="text" id="word-input" required placeholder="e.g., Serendipity">
-                    </div>
-                    <div class="form-group">
-                        <label>Meaning</label>
-                        <textarea id="word-meaning" required placeholder="Definition and explanation"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Example Sentence</label>
-                        <textarea id="word-example" placeholder="How to use it in a sentence"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Course (optional)</label>
-                        <select id="word-course">
-                            <option value="">No Course</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn" id="word-submit-btn">Add Word</button>
-                </form>
-            </div>
+<!-- PROFILE SCREEN -->
+<div id="profile-screen">
+    <h1>📚 English Learning</h1>
+    <div id="profiles-list"></div>
+    <button onclick="openCreateProfile()">➕ Create Profile</button>
+</div>
 
-            <div class="search-box">
-                <input type="text" placeholder="🔍 Search words..." onkeyup="searchWords(this.value)">
-            </div>
+<!-- MAIN APP -->
+<div id="main-app" style="display:none">
+    <h2 id="current-profile-name"></h2>
+    <button onclick="logout()">Logout</button>
 
-            <div id="words-list" class="items-list"></div>
-        </div>
+    <h3>Add Word</h3>
+    <form onsubmit="addWord(event)">
+        <input id="word-input" placeholder="Word" required>
+        <textarea id="word-meaning" placeholder="Meaning" required></textarea>
+        <textarea id="word-example" placeholder="Example"></textarea>
+        <button>Add</button>
+    </form>
 
-        <!-- Sentences Section -->
-        <div id="sentences-section" class="content-section">
-            <div class="add-form">
-                <h2 style="margin-bottom: 15px; color: #333; font-size: 18px;">Add New Sentence</h2>
-                <form id="sentence-form" onsubmit="addSentence(event)">
-                    <div class="form-group">
-                        <label>Sentence</label>
-                        <textarea id="sentence-input" required placeholder="Enter the sentence"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Translation/Notes</label>
-                        <textarea id="sentence-notes" placeholder="Meaning or notes about this sentence"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Course (optional)</label>
-                        <select id="sentence-course">
-                            <option value="">No Course</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn">Add Sentence</button>
-                </form>
-            </div>
+    <div id="words-list"></div>
+</div>
 
-            <div class="search-box">
-                <input type="text" placeholder="🔍 Search sentences..." onkeyup="searchSentences(this.value)">
-            </div>
+<!-- CREATE PROFILE MODAL -->
+<div id="create-profile" style="display:none">
+    <input id="new-name" placeholder="Profile Name">
+    <input id="new-pin" placeholder="4 Digit PIN" maxlength="4">
+    <button onclick="createProfile()">Create</button>
+</div>
 
-            <div id="sentences-list" class="items-list"></div>
-        </div>
+<!-- PIN MODAL -->
+<div id="pin-modal" style="display:none">
+    <h3 id="pin-name"></h3>
+    <input id="pin-input" maxlength="4">
+    <button onclick="verifyPin()">Enter</button>
+</div>
 
-        <!-- Courses Section -->
-        <div id="courses-section" class="content-section">
-            <div class="add-form">
-                <h2 style="margin-bottom: 15px; color: #333; font-size: 18px;">Add New Course</h2>
-                <form id="course-form" onsubmit="addCourse(event)">
-                    <div class="form-group">
-                        <label>Course Name</label>
-                        <input type="text" id="course-name" required placeholder="e.g., Business English">
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea id="course-description" placeholder="What is this course about?"></textarea>
-                    </div>
-                    <button type="submit" class="btn">Add Course</button>
-                </form>
-            </div>
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-            <div id="courses-list" class="items-list"></div>
-        </div>
-
-        <!-- Study Section -->
-        <div id="study-section" class="content-section">
-            <div class="add-form" style="padding: 15px;">
-                <h2 style="margin-bottom: 10px; color: #333; font-size: 18px;">📖 My Dictionary</h2>
-                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Read and review all your vocabulary</p>
-                
-                <div class="form-group" style="margin-bottom: 10px;">
-                    <label>Filter by Course</label>
-                    <select id="study-filter" onchange="renderStudyList()">
-                        <option value="">All Courses</option>
-                    </select>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Sort by</label>
-                    <select id="study-sort" onchange="renderStudyList()">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="alphabetical">Alphabetical (A-Z)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="search-box">
-                <input type="text" placeholder="🔍 Search your dictionary..." onkeyup="searchStudyList(this.value)">
-            </div>
-
-            <div id="study-list" class="items-list"></div>
-        </div>
-    </div>
-
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-        // ========================================
-        // FIREBASE CONFIGURATION
-        // ========================================
-        // TODO: Replace this with your own Firebase config
-        // Get it from: Firebase Console > Project Settings > Your Apps > Web App
-        const firebaseConfig = {
-
-  apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
-
-  authDomain: "english-learning-app-d6326.firebaseapp.com",
-
-  projectId: "english-learning-app-d6326",
-
-  storageBucket: "english-learning-app-d6326.firebasestorage.app",
-
-  messagingSenderId: "80639036133",
-
-  appId: "1:80639036133:web:f4284c24bb1ee95e7de20c",
-
-  measurementId: "G-VVWYDWEK6R"
-
+const firebaseConfig = {
+  apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
+  authDomain: "english-learning-app-d6326.firebaseapp.com",
+  projectId: "english-learning-app-d6326",
+  storageBucket: "english-learning-app-d6326.firebasestorage.app",
+  messagingSenderId: "80639036133",
+  appId: "1:80639036133:web:f4284c24bb1ee95e7de20c",
+  measurementId: "G-VVWYDWEK6R"
 };
 
-        // Initialize Firebase
-        let app, db;
-        let isFirebaseConfigured = false;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-        try {
-            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                isFirebaseConfigured = true;
-                updateSyncStatus('connected', 'Connected - Cloud Sync Active');
-            } else {
-                updateSyncStatus('error', 'Offline - Setup Required');
-                document.getElementById('setup-notice').style.display = 'block';
-            }
-        } catch (error) {
-            console.error('Firebase initialization error:', error);
-            updateSyncStatus('error', 'Offline Mode');
-            document.getElementById('setup-notice').style.display = 'block';
+window.fs = {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  orderBy,
+  db
+};
+</script>
+
+<script>
+/* =======================
+   GLOBAL STATE
+======================= */
+let currentProfile = null;
+let selectedProfile = null;
+let words = [];
+
+/* =======================
+   PROFILE (FIRESTORE)
+======================= */
+
+async function loadProfiles() {
+    const snap = await fs.getDocs(fs.collection(fs.db, "profiles"));
+    const list = document.getElementById("profiles-list");
+    list.innerHTML = "";
+
+    snap.forEach(docu => {
+        const p = { id: docu.id, ...docu.data() };
+        list.innerHTML += `
+            <button onclick="selectProfile('${p.id}','${p.name}')">
+                👤 ${p.name}
+            </button>
+        `;
+    });
+}
+
+function openCreateProfile() {
+    document.getElementById("create-profile").style.display = "block";
+}
+
+async function createProfile() {
+    const name = new-name.value.trim();
+    const pin = new-pin.value;
+
+    if (!name || pin.length !== 4) {
+        alert("Name & 4-digit PIN required");
+        return;
+    }
+
+    await fs.addDoc(fs.collection(fs.db, "profiles"), {
+        name,
+        pin,
+        createdAt: Date.now()
+    });
+
+    new-name.value = "";
+    new-pin.value = "";
+    create-profile.style.display = "none";
+    loadProfiles();
+}
+
+function selectProfile(id, name) {
+    selectedProfile = { id, name };
+    pin-name.textContent = name;
+    pin-modal.style.display = "block";
+}
+
+async function verifyPin() {
+    const entered = pin-input.value;
+    const ref = fs.doc(fs.db, "profiles", selectedProfile.id);
+    const snap = await fs.getDocs(fs.collection(ref, "dummy")); // force fetch
+    const profileSnap = await fs.getDocs(fs.collection(fs.db, "profiles"));
+
+    let correct = false;
+    profileSnap.forEach(p => {
+        if (p.id === selectedProfile.id && p.data().pin === entered) {
+            correct = true;
         }
+    });
 
-        // Data storage
-        window.data = {
-            words: [],
-            sentences: [],
-            courses: []
-        };
+    if (!correct) {
+        alert("Wrong PIN");
+        return;
+    }
 
-        // Update sync status indicator
-        function updateSyncStatus(status, text) {
-            const indicator = document.getElementById('sync-indicator');
-            const syncText = document.getElementById('sync-text');
-            
-            indicator.className = 'sync-indicator ' + status;
-            syncText.textContent = text;
-        }
+    currentProfile = selectedProfile;
+    pin-modal.style.display = "none";
+    login();
+}
 
-        // Load data from Firestore with real-time updates
-        async function loadDataFromFirestore() {
-            if (!isFirebaseConfigured) {
-                // Fall back to localStorage
-                const saved = localStorage.getItem('englishLearningData');
-                if (saved) {
-                    window.data = JSON.parse(saved);
-                }
-                updateUI();
-                return;
-            }
+function login() {
+    profile-screen.style.display = "none";
+    main-app.style.display = "block";
+    current-profile-name.textContent = currentProfile.name;
+    listenWords();
+}
 
-            try {
-                updateSyncStatus('syncing', 'Syncing...');
+function logout() {
+    currentProfile = null;
+    main-app.style.display = "none";
+    profile-screen.style.display = "block";
+}
 
-                // Real-time listener for words
-                const wordsQuery = query(collection(db, 'words'), orderBy('timestamp', 'desc'));
-                onSnapshot(wordsQuery, (snapshot) => {
-                    window.data.words = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    renderWords();
-                    renderStudyList();
-                });
+/* =======================
+   WORDS (FIRESTORE – CODE 1 STYLE)
+======================= */
 
-                // Real-time listener for sentences
-                const sentencesQuery = query(collection(db, 'sentences'), orderBy('timestamp', 'desc'));
-                onSnapshot(sentencesQuery, (snapshot) => {
-                    window.data.sentences = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    renderSentences();
-                });
-
-                // Real-time listener for courses
-                const coursesQuery = query(collection(db, 'courses'), orderBy('timestamp', 'desc'));
-                onSnapshot(coursesQuery, (snapshot) => {
-                    window.data.courses = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    updateCourseSelects();
-                    renderCourses();
-                });
-
-                updateSyncStatus('connected', 'Connected - Cloud Sync Active');
-            } catch (error) {
-                console.error('Error loading from Firestore:', error);
-                updateSyncStatus('error', 'Sync Error');
-            }
-        }
-
-        // Add word to Firestore
-        window.addWord = async function(event) {
-            event.preventDefault();
-            
-            const wordData = {
-                word: document.getElementById('word-input').value,
-                meaning: document.getElementById('word-meaning').value,
-                example: document.getElementById('word-example').value,
-                course: document.getElementById('word-course').value,
-                date: new Date().toLocaleDateString(),
-                timestamp: Date.now()
-            };
-
-            if (isFirebaseConfigured) {
-                try {
-                    updateSyncStatus('syncing', 'Saving...');
-                    await addDoc(collection(db, 'words'), wordData);
-                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
-                    event.target.reset();
-                } catch (error) {
-                    console.error('Error adding word:', error);
-                    alert('Error saving word. Please try again.');
-                    updateSyncStatus('error', 'Sync Error');
-                }
-            } else {
-                // Fallback to localStorage
-                wordData.id = Date.now();
-                window.data.words.unshift(wordData);
-                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
-                renderWords();
-                renderStudyList();
-                event.target.reset();
-            }
-        };
-
-        // Add sentence to Firestore
-        window.addSentence = async function(event) {
-            event.preventDefault();
-            
-            const sentenceData = {
-                sentence: document.getElementById('sentence-input').value,
-                notes: document.getElementById('sentence-notes').value,
-                course: document.getElementById('sentence-course').value,
-                date: new Date().toLocaleDateString(),
-                timestamp: Date.now()
-            };
-
-            if (isFirebaseConfigured) {
-                try {
-                    updateSyncStatus('syncing', 'Saving...');
-                    await addDoc(collection(db, 'sentences'), sentenceData);
-                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
-                    event.target.reset();
-                } catch (error) {
-                    console.error('Error adding sentence:', error);
-                    alert('Error saving sentence. Please try again.');
-                    updateSyncStatus('error', 'Sync Error');
-                }
-            } else {
-                // Fallback to localStorage
-                sentenceData.id = Date.now();
-                window.data.sentences.unshift(sentenceData);
-                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
-                renderSentences();
-                event.target.reset();
-            }
-        };
-
-        // Add course to Firestore
-        window.addCourse = async function(event) {
-            event.preventDefault();
-            
-            const courseData = {
-                name: document.getElementById('course-name').value,
-                description: document.getElementById('course-description').value,
-                date: new Date().toLocaleDateString(),
-                timestamp: Date.now()
-            };
-
-            if (isFirebaseConfigured) {
-                try {
-                    updateSyncStatus('syncing', 'Saving...');
-                    await addDoc(collection(db, 'courses'), courseData);
-                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
-                    event.target.reset();
-                } catch (error) {
-                    console.error('Error adding course:', error);
-                    alert('Error saving course. Please try again.');
-                    updateSyncStatus('error', 'Sync Error');
-                }
-            } else {
-                // Fallback to localStorage
-                courseData.id = Date.now();
-                window.data.courses.unshift(courseData);
-                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
-                updateCourseSelects();
-                renderCourses();
-                event.target.reset();
-            }
-        };
-
-        // Delete word from Firestore
-        window.deleteWord = async function(id) {
-            if (!confirm('Delete this word?')) return;
-
-            if (isFirebaseConfigured) {
-                try {
-                    updateSyncStatus('syncing', 'Deleting...');
-                    await deleteDoc(doc(db, 'words', id));
-                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
-                } catch (error) {
-                    console.error('Error deleting word:', error);
-                    alert('Error deleting word. Please try again.');
-                    updateSyncStatus('error', 'Sync Error');
-                }
-            } else {
-                window.data.words = window.data.words.filter(w => w.id !== id);
-                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
-                renderWords();
-                renderStudyList();
-            }
-        };
-
-        // Delete sentence from Firestore
-        window.deleteSentence = async function(id) {
-            if (!confirm('Delete this sentence?')) return;
-
-            if (isFirebaseConfigured) {
-                try {
-                    updateSyncStatus('syncing', 'Deleting...');
-                    await deleteDoc(doc(db, 'sentences', id));
-                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
-                } catch (error) {
-                    console.error('Error deleting sentence:', error);
-                    alert('Error deleting sentence. Please try again.');
-                    updateSyncStatus('error', 'Sync Error');
-                }
-            } else {
-                window.data.sentences = window.data.sentences.filter(s => s.id !== id);
-                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
-                renderSentences();
-            }
-        };
-
-        // Delete course from Firestore
-        window.deleteCourse = async function(id) {
-            if (!confirm('Delete this course? Words and sentences will not be deleted.')) return;
-
-            if (isFirebaseConfigured) {
-                try {
-                    updateSyncStatus('syncing', 'Deleting...');
-                    await deleteDoc(doc(db, 'courses', id));
-                    updateSyncStatus('connected', 'Connected - Cloud Sync Active');
-                } catch (error) {
-                    console.error('Error deleting course:', error);
-                    alert('Error deleting course. Please try again.');
-                    updateSyncStatus('error', 'Sync Error');
-                }
-            } else {
-                window.data.courses = window.data.courses.filter(c => c.id !== id);
-                localStorage.setItem('englishLearningData', JSON.stringify(window.data));
-                updateCourseSelects();
-                renderCourses();
-                renderWords();
-                renderSentences();
-            }
-        };
-
-        // UI Update Functions
-        function updateUI() {
-            updateCourseSelects();
+function listenWords() {
+    fs.onSnapshot(
+        fs.query(
+            fs.collection(fs.db, "profiles", currentProfile.id, "words"),
+            fs.orderBy("timestamp", "desc")
+        ),
+        snap => {
+            words = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderWords();
-            renderSentences();
-            renderCourses();
-            renderStudyList();
         }
+    );
+}
 
-        // Initialize
-        loadDataFromFirestore();
-    </script>
+async function addWord(e) {
+    e.preventDefault();
 
-    <script>
-        // Switch tabs
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(tab + '-section').classList.add('active');
+    await fs.addDoc(
+        fs.collection(fs.db, "profiles", currentProfile.id, "words"),
+        {
+            word: word-input.value,
+            meaning: word-meaning.value,
+            example: word-example.value,
+            date: new Date().toLocaleDateString(),
+            timestamp: Date.now()
         }
+    );
 
-        // Update course select dropdowns
-        function updateCourseSelects() {
-            const wordSelect = document.getElementById('word-course');
-            const sentenceSelect = document.getElementById('sentence-course');
-            const studyFilter = document.getElementById('study-filter');
-            
-            const options = '<option value="">No Course</option>' + 
-                window.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            
-            const filterOptions = '<option value="">All Courses</option>' + 
-                window.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            
-            wordSelect.innerHTML = options;
-            sentenceSelect.innerHTML = options;
-            studyFilter.innerHTML = filterOptions;
-        }
+    e.target.reset();
+}
 
-        // Render words
-        function renderWords(filtered = null) {
-            const list = document.getElementById('words-list');
-            const words = filtered || window.data.words;
+async function deleteWord(id) {
+    await fs.deleteDoc(
+        fs.doc(fs.db, "profiles", currentProfile.id, "words", id)
+    );
+}
 
-            if (words.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📖</div>
-                        <div class="empty-state-text">No words yet. Add your first word above!</div>
-                    </div>
-                `;
-                return;
-            }
+/* =======================
+   UI
+======================= */
 
-            list.innerHTML = words.map(word => {
-                const course = window.data.courses.find(c => c.id == word.course);
-                return `
-                    <div class="item-card">
-                        <div class="item-header">
-                            <div class="item-title">${word.word}</div>
-                            <div class="item-actions">
-                                <button class="icon-btn" onclick="deleteWord('${word.id}')">🗑️</button>
-                            </div>
-                        </div>
-                        <div class="item-content">
-                            <strong>Meaning:</strong> ${word.meaning}
-                            ${word.example ? `<br><br><strong>Example:</strong> ${word.example}` : ''}
-                        </div>
-                        ${course ? `<span class="course-badge">${course.name}</span>` : ''}
-                        <div class="item-meta">Added on ${word.date}</div>
-                    </div>
-                `;
-            }).join('');
-        }
+function renderWords() {
+    const list = document.getElementById("words-list");
+    if (words.length === 0) {
+        list.innerHTML = "No words yet";
+        return;
+    }
 
-        // Render sentences
-        function renderSentences(filtered = null) {
-            const list = document.getElementById('sentences-list');
-            const sentences = filtered || window.data.sentences;
+    list.innerHTML = words.map(w => `
+        <div>
+            <b>${w.word}</b> — ${w.meaning}
+            <button onclick="deleteWord('${w.id}')">🗑️</button>
+        </div>
+    `).join("");
+}
 
-            if (sentences.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">💬</div>
-                        <div class="empty-state-text">No sentences yet. Add your first sentence above!</div>
-                    </div>
-                `;
-                return;
-            }
+/* INIT */
+loadProfiles();
+</script>
 
-            list.innerHTML = sentences.map(sentence => {
-                const course = window.data.courses.find(c => c.id == sentence.course);
-                return `
-                    <div class="item-card">
-                        <div class="item-header">
-                            <div class="item-actions">
-                                <button class="icon-btn" onclick="deleteSentence('${sentence.id}')">🗑️</button>
-                            </div>
-                        </div>
-                        <div class="item-content">
-                            <strong>Sentence:</strong> ${sentence.sentence}
-                            ${sentence.notes ? `<br><br><strong>Notes:</strong> ${sentence.notes}` : ''}
-                        </div>
-                        ${course ? `<span class="course-badge">${course.name}</span>` : ''}
-                        <div class="item-meta">Added on ${sentence.date}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Render courses
-        function renderCourses() {
-            const list = document.getElementById('courses-list');
-
-            if (window.data.courses.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🎓</div>
-                        <div class="empty-state-text">No courses yet. Create your first course above!</div>
-                    </div>
-                `;
-                return;
-            }
-
-            list.innerHTML = window.data.courses.map(course => {
-                const wordCount = window.data.words.filter(w => w.course == course.id).length;
-                const sentenceCount = window.data.sentences.filter(s => s.course == course.id).length;
-                
-                return `
-                    <div class="course-item">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div class="course-title">${course.name}</div>
-                            <button class="icon-btn" onclick="deleteCourse('${course.id}')">🗑️</button>
-                        </div>
-                        ${course.description ? `<div class="course-description">${course.description}</div>` : ''}
-                        <div class="course-stats">
-                            <div class="stat">📖 ${wordCount} words</div>
-                            <div class="stat">💬 ${sentenceCount} sentences</div>
-                            <div class="stat">📅 ${course.date}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Render Study List
-        function renderStudyList(filtered = null) {
-            const list = document.getElementById('study-list');
-            let words = filtered !== null ? filtered : [...window.data.words];
-
-            // Apply course filter
-            const courseFilter = document.getElementById('study-filter').value;
-            if (courseFilter && filtered === null) {
-                words = words.filter(w => w.course == courseFilter);
-            }
-
-            // Apply sorting
-            const sortOption = document.getElementById('study-sort').value;
-            if (sortOption === 'newest') {
-                words.sort((a, b) => (b.timestamp || b.id) - (a.timestamp || a.id));
-            } else if (sortOption === 'oldest') {
-                words.sort((a, b) => (a.timestamp || a.id) - (b.timestamp || b.id));
-            } else if (sortOption === 'alphabetical') {
-                words.sort((a, b) => a.word.localeCompare(b.word));
-            }
-
-            if (words.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📚</div>
-                        <div class="empty-state-text">No words to study yet. Add some words first!</div>
-                    </div>
-                `;
-                return;
-            }
-
-            // Stats bar
-            const totalWords = words.length;
-            const wordsWithExamples = words.filter(w => w.example).length;
-            const coursesUsed = new Set(words.filter(w => w.course).map(w => w.course)).size;
-
-            const statsBar = `
-                <div class="stats-bar">
-                    <div class="stats-item">
-                        <div class="stats-number">${totalWords}</div>
-                        <div class="stats-label">Words</div>
-                    </div>
-                    <div class="stats-item">
-                        <div class="stats-number">${wordsWithExamples}</div>
-                        <div class="stats-label">With Examples</div>
-                    </div>
-                    <div class="stats-item">
-                        <div class="stats-number">${coursesUsed}</div>
-                        <div class="stats-label">Courses</div>
-                    </div>
-                </div>
-            `;
-
-            const wordsHTML = words.map((word, index) => {
-                const course = window.data.courses.find(c => c.id == word.course);
-                return `
-                    <div class="dictionary-card">
-                        <div class="dictionary-word">
-                            <span>${word.word}</span>
-                            <span class="word-number">#${index + 1}</span>
-                        </div>
-                        <div class="dictionary-meaning">${word.meaning}</div>
-                        ${word.example ? `<div class="dictionary-example">${word.example}</div>` : ''}
-                        ${course ? `<span class="course-badge" style="margin-top: 12px;">${course.name}</span>` : ''}
-                        <div class="item-meta" style="margin-top: 12px;">Added on ${word.date}</div>
-                    </div>
-                `;
-            }).join('');
-
-            list.innerHTML = statsBar + wordsHTML;
-        }
-
-        // Search functions
-        function searchWords(query) {
-            if (!query) {
-                renderWords();
-                return;
-            }
-            const filtered = window.data.words.filter(w => 
-                w.word.toLowerCase().includes(query.toLowerCase()) ||
-                w.meaning.toLowerCase().includes(query.toLowerCase())
-            );
-            renderWords(filtered);
-        }
-
-        function searchSentences(query) {
-            if (!query) {
-                renderSentences();
-                return;
-            }
-            const filtered = window.data.sentences.filter(s => 
-                s.sentence.toLowerCase().includes(query.toLowerCase()) ||
-                s.notes.toLowerCase().includes(query.toLowerCase())
-            );
-            renderSentences(filtered);
-        }
-
-        function searchStudyList(query) {
-            if (!query) {
-                renderStudyList();
-                return;
-            }
-            const filtered = window.data.words.filter(w => 
-                w.word.toLowerCase().includes(query.toLowerCase()) ||
-                w.meaning.toLowerCase().includes(query.toLowerCase()) ||
-                (w.example && w.example.toLowerCase().includes(query.toLowerCase()))
-            );
-            renderStudyList(filtered);
-        }
-    </script>
 </body>
 </html>

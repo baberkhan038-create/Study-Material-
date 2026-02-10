@@ -19,6 +19,7 @@
             padding-bottom: 80px;
             animation: gradientShift 15s ease infinite;
             background-size: 200% 200%;
+            overflow-x: hidden;
         }
 
         @keyframes gradientShift {
@@ -197,7 +198,7 @@
             font-size: 14px;
         }
 
-        .form-group input {
+        .form-group input, .form-group textarea {
             width: 100%;
             padding: 12px;
             background: rgba(255, 255, 255, 0.05);
@@ -208,15 +209,21 @@
             transition: all 0.3s ease;
         }
 
-        .form-group input::placeholder {
+        .form-group input::placeholder, .form-group textarea::placeholder {
             color: #718096;
         }
 
-        .form-group input:focus {
+        .form-group input:focus, .form-group textarea:focus {
             outline: none;
             background: rgba(255, 255, 255, 0.08);
             border-color: #00d4ff;
             box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
         }
 
         .pin-input {
@@ -260,6 +267,16 @@
 
         .btn-secondary:active {
             background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff5252 0%, #ff1744 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4);
+        }
+
+        .btn-danger:active {
+            transform: scale(0.98);
         }
 
         /* Main App Styles */
@@ -317,7 +334,27 @@
             font-size: 14px;
         }
 
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
         .logout-btn {
+            background: rgba(255, 152, 0, 0.2);
+            border: 1px solid rgba(255, 152, 0, 0.4);
+            color: #ff9800;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 152, 0, 0.3);
+        }
+
+        .delete-profile-btn {
             background: rgba(255, 82, 82, 0.2);
             border: 1px solid rgba(255, 82, 82, 0.4);
             color: #ff5252;
@@ -328,13 +365,14 @@
             transition: all 0.3s ease;
         }
 
-        .logout-btn:hover {
+        .delete-profile-btn:hover {
             background: rgba(255, 82, 82, 0.3);
         }
 
         .tabs {
             display: flex;
             gap: 10px;
+            position: relative;
         }
 
         .tab {
@@ -357,12 +395,70 @@
             box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
         }
 
+        .content-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
         .content-section {
             display: none;
+            animation: slideInRight 0.3s ease-out;
         }
 
         .content-section.active {
             display: block;
+        }
+
+        .content-section.slide-left {
+            animation: slideOutLeft 0.3s ease-out;
+        }
+
+        .content-section.slide-right {
+            animation: slideOutRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutLeft {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
         }
 
         .add-form {
@@ -706,6 +802,12 @@
             color: #718096;
         }
 
+        .loading {
+            text-align: center;
+            color: #a0aec0;
+            padding: 20px;
+        }
+
         @media (max-width: 480px) {
             .profiles-list {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -724,6 +826,16 @@
                 font-size: 12px;
                 padding: 8px;
             }
+
+            .header-actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .logout-btn, .delete-profile-btn {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
         }
     </style>
 </head>
@@ -736,7 +848,9 @@
                 <p>Select a profile or create a new one</p>
             </div>
             
-            <div class="profiles-list" id="profiles-list"></div>
+            <div class="profiles-list" id="profiles-list">
+                <div class="loading">Loading profiles...</div>
+            </div>
             
             <button class="add-profile-btn" onclick="showCreateProfileModal()">
                 <span>➕</span>
@@ -754,116 +868,121 @@
                             <span>👤</span>
                             <span id="current-profile-name"></span>
                         </div>
-                        <button class="logout-btn" onclick="logout()">Logout</button>
+                        <div class="header-actions">
+                            <button class="logout-btn" onclick="logout()">Logout</button>
+                            <button class="delete-profile-btn" onclick="showDeleteProfileModal()">Delete Profile</button>
+                        </div>
                     </div>
                 </div>
                 <div class="tabs">
-                    <button class="tab active" onclick="switchTab('words')">Words</button>
-                    <button class="tab" onclick="switchTab('sentences')">Sentences</button>
-                    <button class="tab" onclick="switchTab('courses')">Courses</button>
-                    <button class="tab" onclick="switchTab('study')">Study</button>
+                    <button class="tab active" data-tab="words" onclick="switchTab('words')">Words</button>
+                    <button class="tab" data-tab="sentences" onclick="switchTab('sentences')">Sentences</button>
+                    <button class="tab" data-tab="courses" onclick="switchTab('courses')">Courses</button>
+                    <button class="tab" data-tab="study" onclick="switchTab('study')">Study</button>
                 </div>
             </div>
 
-            <!-- Words Section -->
-            <div id="words-section" class="content-section active">
-                <div class="add-form">
-                    <h2>Add New Word</h2>
-                    <form id="word-form" onsubmit="addWord(event)">
-                        <label>Word</label>
-                        <input type="text" id="word-input" required placeholder="e.g., Serendipity">
+            <div class="content-wrapper">
+                <!-- Words Section -->
+                <div id="words-section" class="content-section active">
+                    <div class="add-form">
+                        <h2>Add New Word</h2>
+                        <form id="word-form" onsubmit="addWord(event)">
+                            <label>Word</label>
+                            <input type="text" id="word-input" required placeholder="e.g., Serendipity">
+                            
+                            <label>Meaning</label>
+                            <textarea id="word-meaning" required placeholder="Definition and explanation"></textarea>
+                            
+                            <label>Example Sentence</label>
+                            <textarea id="word-example" placeholder="How to use it in a sentence"></textarea>
+                            
+                            <label>Course (optional)</label>
+                            <select id="word-course">
+                                <option value="">No Course</option>
+                            </select>
+                            
+                            <button type="submit" class="submit-btn">Add Word</button>
+                        </form>
+                    </div>
+
+                    <div class="search-box">
+                        <input type="text" placeholder="🔍 Search words..." onkeyup="searchWords(this.value)">
+                    </div>
+
+                    <div id="words-list" class="items-list"></div>
+                </div>
+
+                <!-- Sentences Section -->
+                <div id="sentences-section" class="content-section">
+                    <div class="add-form">
+                        <h2>Add New Sentence</h2>
+                        <form id="sentence-form" onsubmit="addSentence(event)">
+                            <label>Sentence</label>
+                            <textarea id="sentence-input" required placeholder="Enter the sentence"></textarea>
+                            
+                            <label>Translation/Notes</label>
+                            <textarea id="sentence-notes" placeholder="Meaning or notes about this sentence"></textarea>
+                            
+                            <label>Course (optional)</label>
+                            <select id="sentence-course">
+                                <option value="">No Course</option>
+                            </select>
+                            
+                            <button type="submit" class="submit-btn">Add Sentence</button>
+                        </form>
+                    </div>
+
+                    <div class="search-box">
+                        <input type="text" placeholder="🔍 Search sentences..." onkeyup="searchSentences(this.value)">
+                    </div>
+
+                    <div id="sentences-list" class="items-list"></div>
+                </div>
+
+                <!-- Courses Section -->
+                <div id="courses-section" class="content-section">
+                    <div class="add-form">
+                        <h2>Add New Course</h2>
+                        <form id="course-form" onsubmit="addCourse(event)">
+                            <label>Course Name</label>
+                            <input type="text" id="course-name" required placeholder="e.g., Business English">
+                            
+                            <label>Description</label>
+                            <textarea id="course-description" placeholder="What is this course about?"></textarea>
+                            
+                            <button type="submit" class="submit-btn">Add Course</button>
+                        </form>
+                    </div>
+
+                    <div id="courses-list" class="items-list"></div>
+                </div>
+
+                <!-- Study Section -->
+                <div id="study-section" class="content-section">
+                    <div class="add-form" style="padding: 15px;">
+                        <h2>📖 My Dictionary</h2>
+                        <p style="color: #a0aec0; font-size: 14px; margin-bottom: 15px;">Read and review all your vocabulary</p>
                         
-                        <label>Meaning</label>
-                        <textarea id="word-meaning" required placeholder="Definition and explanation"></textarea>
-                        
-                        <label>Example Sentence</label>
-                        <textarea id="word-example" placeholder="How to use it in a sentence"></textarea>
-                        
-                        <label>Course (optional)</label>
-                        <select id="word-course">
-                            <option value="">No Course</option>
+                        <label>Filter by Course</label>
+                        <select id="study-filter" onchange="renderStudyList()">
+                            <option value="">All Courses</option>
                         </select>
                         
-                        <button type="submit" class="submit-btn">Add Word</button>
-                    </form>
-                </div>
-
-                <div class="search-box">
-                    <input type="text" placeholder="🔍 Search words..." onkeyup="searchWords(this.value)">
-                </div>
-
-                <div id="words-list" class="items-list"></div>
-            </div>
-
-            <!-- Sentences Section -->
-            <div id="sentences-section" class="content-section">
-                <div class="add-form">
-                    <h2>Add New Sentence</h2>
-                    <form id="sentence-form" onsubmit="addSentence(event)">
-                        <label>Sentence</label>
-                        <textarea id="sentence-input" required placeholder="Enter the sentence"></textarea>
-                        
-                        <label>Translation/Notes</label>
-                        <textarea id="sentence-notes" placeholder="Meaning or notes about this sentence"></textarea>
-                        
-                        <label>Course (optional)</label>
-                        <select id="sentence-course">
-                            <option value="">No Course</option>
+                        <label>Sort by</label>
+                        <select id="study-sort" onchange="renderStudyList()">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="alphabetical">Alphabetical (A-Z)</option>
                         </select>
-                        
-                        <button type="submit" class="submit-btn">Add Sentence</button>
-                    </form>
+                    </div>
+
+                    <div class="search-box">
+                        <input type="text" placeholder="🔍 Search your dictionary..." onkeyup="searchStudyList(this.value)">
+                    </div>
+
+                    <div id="study-list" class="items-list"></div>
                 </div>
-
-                <div class="search-box">
-                    <input type="text" placeholder="🔍 Search sentences..." onkeyup="searchSentences(this.value)">
-                </div>
-
-                <div id="sentences-list" class="items-list"></div>
-            </div>
-
-            <!-- Courses Section -->
-            <div id="courses-section" class="content-section">
-                <div class="add-form">
-                    <h2>Add New Course</h2>
-                    <form id="course-form" onsubmit="addCourse(event)">
-                        <label>Course Name</label>
-                        <input type="text" id="course-name" required placeholder="e.g., Business English">
-                        
-                        <label>Description</label>
-                        <textarea id="course-description" placeholder="What is this course about?"></textarea>
-                        
-                        <button type="submit" class="submit-btn">Add Course</button>
-                    </form>
-                </div>
-
-                <div id="courses-list" class="items-list"></div>
-            </div>
-
-            <!-- Study Section -->
-            <div id="study-section" class="content-section">
-                <div class="add-form" style="padding: 15px;">
-                    <h2>📖 My Dictionary</h2>
-                    <p style="color: #a0aec0; font-size: 14px; margin-bottom: 15px;">Read and review all your vocabulary</p>
-                    
-                    <label>Filter by Course</label>
-                    <select id="study-filter" onchange="renderStudyList()">
-                        <option value="">All Courses</option>
-                    </select>
-                    
-                    <label>Sort by</label>
-                    <select id="study-sort" onchange="renderStudyList()">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="alphabetical">Alphabetical (A-Z)</option>
-                    </select>
-                </div>
-
-                <div class="search-box">
-                    <input type="text" placeholder="🔍 Search your dictionary..." onkeyup="searchStudyList(this.value)">
-                </div>
-
-                <div id="study-list" class="items-list"></div>
             </div>
         </div>
     </div>
@@ -904,6 +1023,24 @@
         </div>
     </div>
 
+    <!-- Delete Profile Modal -->
+    <div id="delete-profile-modal" class="modal">
+        <div class="modal-content">
+            <h2>Delete Profile</h2>
+            <p style="color: #ff5252; margin-bottom: 20px; font-size: 14px;">
+                ⚠️ This will permanently delete all your data!
+            </p>
+            <div class="form-group">
+                <label>Enter your PIN to confirm</label>
+                <input type="tel" id="delete-profile-pin" class="pin-input" placeholder="****" maxlength="4" pattern="[0-9]{4}">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeDeleteProfileModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDeleteProfile()">Delete Profile</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Word Modal -->
     <div id="edit-word-modal" class="modal">
         <div class="modal-content">
@@ -914,15 +1051,15 @@
             </div>
             <div class="form-group">
                 <label>Meaning</label>
-                <textarea id="edit-word-meaning" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; border-radius: 10px; min-height: 80px;"></textarea>
+                <textarea id="edit-word-meaning"></textarea>
             </div>
             <div class="form-group">
                 <label>Example</label>
-                <textarea id="edit-word-example" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; border-radius: 10px; min-height: 80px;"></textarea>
+                <textarea id="edit-word-example"></textarea>
             </div>
             <div class="form-group">
                 <label>Course</label>
-                <select id="edit-word-course" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; border-radius: 10px;">
+                <select id="edit-word-course">
                     <option value="">No Course</option>
                 </select>
             </div>
@@ -939,15 +1076,15 @@
             <h2>Edit Sentence</h2>
             <div class="form-group">
                 <label>Sentence</label>
-                <textarea id="edit-sentence-input" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; border-radius: 10px; min-height: 80px;"></textarea>
+                <textarea id="edit-sentence-input"></textarea>
             </div>
             <div class="form-group">
                 <label>Translation/Notes</label>
-                <textarea id="edit-sentence-notes" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; border-radius: 10px; min-height: 80px;"></textarea>
+                <textarea id="edit-sentence-notes"></textarea>
             </div>
             <div class="form-group">
                 <label>Course</label>
-                <select id="edit-sentence-course" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; border-radius: 10px;">
+                <select id="edit-sentence-course">
                     <option value="">No Course</option>
                 </select>
             </div>
@@ -958,52 +1095,129 @@
         </div>
     </div>
 
-    <script>
+    <!-- Edit Course Modal -->
+    <div id="edit-course-modal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Course</h2>
+            <div class="form-group">
+                <label>Course Name</label>
+                <input type="text" id="edit-course-name">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="edit-course-description"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeEditCourseModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEditedCourse()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, updateDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // ========================================
+        // FIREBASE CONFIGURATION
+        // ========================================
+        // TODO: Replace this with your own Firebase config
+        const firebaseConfig = {
+
+  apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
+
+  authDomain: "english-learning-app-d6326.firebaseapp.com",
+
+  projectId: "english-learning-app-d6326",
+
+  storageBucket: "english-learning-app-d6326.firebasestorage.app",
+
+  messagingSenderId: "80639036133",
+
+  appId: "1:80639036133:web:f4284c24bb1ee95e7de20c",
+
+  measurementId: "G-VVWYDWEK6R"
+
+};
+
+
+
+        // Initialize Firebase
+        let app, db;
+        let isFirebaseConfigured = false;
+
+        try {
+            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                isFirebaseConfigured = true;
+                console.log('Firebase initialized successfully');
+            } else {
+                alert('⚠️ Firebase not configured! Please add your Firebase configuration.');
+            }
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            alert('Firebase initialization error. Please check your configuration.');
+        }
+
         // App State
-        let profiles = [];
-        let currentProfile = null;
-        let selectedProfileForPin = null;
-        let currentEditId = null;
+        window.currentProfile = null;
+        window.selectedProfileForPin = null;
+        window.currentEditId = null;
+        window.currentTab = 'words';
+        window.tabOrder = ['words', 'sentences', 'courses', 'study'];
+
+        // Make Firebase available globally
+        window.db = db;
+        window.isFirebaseConfigured = isFirebaseConfigured;
+        window.firestoreModules = { collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, updateDoc, setDoc };
 
         // Profile Management
-        function loadProfiles() {
-            const saved = localStorage.getItem('englishLearningProfiles');
-            if (saved) {
-                profiles = JSON.parse(saved);
+        window.loadProfiles = async function() {
+            if (!isFirebaseConfigured) return;
+
+            try {
+                const profilesQuery = query(collection(db, 'profiles'), orderBy('createdAt', 'desc'));
+                onSnapshot(profilesQuery, (snapshot) => {
+                    const profiles = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    renderProfiles(profiles);
+                });
+            } catch (error) {
+                console.error('Error loading profiles:', error);
             }
-            renderProfiles();
-        }
+        };
 
-        function saveProfiles() {
-            localStorage.setItem('englishLearningProfiles', JSON.stringify(profiles));
-        }
-
-        function renderProfiles() {
+        function renderProfiles(profiles) {
             const list = document.getElementById('profiles-list');
+            
             if (profiles.length === 0) {
-                list.innerHTML = '';
+                list.innerHTML = '<div class="loading">No profiles yet. Create one below!</div>';
                 return;
             }
 
             list.innerHTML = profiles.map(profile => `
-                <div class="profile-card" onclick="selectProfile('${profile.id}')">
+                <div class="profile-card" onclick="selectProfile('${profile.id}', '${profile.name}', '${profile.pin}')">
                     <div class="profile-icon">👤</div>
                     <div class="profile-name">${profile.name}</div>
                 </div>
             `).join('');
         }
 
-        function showCreateProfileModal() {
+        window.showCreateProfileModal = function() {
             document.getElementById('create-profile-modal').classList.add('active');
             document.getElementById('new-profile-name').value = '';
             document.getElementById('new-profile-pin').value = '';
-        }
+        };
 
-        function closeCreateProfileModal() {
+        window.closeCreateProfileModal = function() {
             document.getElementById('create-profile-modal').classList.remove('active');
-        }
+        };
 
-        function createProfile() {
+        window.createProfile = async function() {
             const name = document.getElementById('new-profile-name').value.trim();
             const pin = document.getElementById('new-profile-pin').value;
 
@@ -1017,122 +1231,302 @@
                 return;
             }
 
-            const profile = {
-                id: Date.now().toString(),
-                name: name,
-                pin: pin,
-                data: {
-                    words: [],
-                    sentences: [],
-                    courses: []
-                }
-            };
-
-            profiles.push(profile);
-            saveProfiles();
-            renderProfiles();
-            closeCreateProfileModal();
-        }
-
-        function selectProfile(profileId) {
-            selectedProfileForPin = profiles.find(p => p.id === profileId);
-            if (selectedProfileForPin) {
-                document.getElementById('pin-profile-name').textContent = selectedProfileForPin.name;
-                document.getElementById('pin-modal').classList.add('active');
-                document.getElementById('enter-pin').value = '';
-                document.getElementById('enter-pin').focus();
+            if (!isFirebaseConfigured) {
+                alert('Firebase not configured');
+                return;
             }
-        }
 
-        function closePinModal() {
+            try {
+                await addDoc(collection(db, 'profiles'), {
+                    name: name,
+                    pin: pin,
+                    createdAt: Date.now()
+                });
+                
+                closeCreateProfileModal();
+            } catch (error) {
+                console.error('Error creating profile:', error);
+                alert('Error creating profile. Please try again.');
+            }
+        };
+
+        window.selectProfile = function(profileId, profileName, profilePin) {
+            window.selectedProfileForPin = { id: profileId, name: profileName, pin: profilePin };
+            document.getElementById('pin-profile-name').textContent = profileName;
+            document.getElementById('pin-modal').classList.add('active');
+            document.getElementById('enter-pin').value = '';
+            document.getElementById('enter-pin').focus();
+        };
+
+        window.closePinModal = function() {
             document.getElementById('pin-modal').classList.remove('active');
-            selectedProfileForPin = null;
-        }
+            window.selectedProfileForPin = null;
+        };
 
-        function verifyPin() {
+        window.verifyPin = function() {
             const enteredPin = document.getElementById('enter-pin').value;
 
-            if (enteredPin === selectedProfileForPin.pin) {
-                currentProfile = selectedProfileForPin;
+            if (enteredPin === window.selectedProfileForPin.pin) {
+                window.currentProfile = window.selectedProfileForPin;
                 loginToProfile();
             } else {
                 alert('Incorrect PIN!');
                 document.getElementById('enter-pin').value = '';
             }
-        }
+        };
 
         function loginToProfile() {
             closePinModal();
+            
+            // Save session
+            sessionStorage.setItem('currentProfileId', window.currentProfile.id);
+            sessionStorage.setItem('currentProfileName', window.currentProfile.name);
+            sessionStorage.setItem('currentProfilePin', window.currentProfile.pin);
+            
             document.getElementById('profile-screen').style.display = 'none';
             document.getElementById('main-app').classList.add('active');
-            document.getElementById('current-profile-name').textContent = currentProfile.name;
+            document.getElementById('current-profile-name').textContent = window.currentProfile.name;
+            
             loadProfileData();
         }
 
-        function logout() {
-            currentProfile = null;
+        window.logout = function() {
+            // Clear session
+            sessionStorage.removeItem('currentProfileId');
+            sessionStorage.removeItem('currentProfileName');
+            sessionStorage.removeItem('currentProfilePin');
+            
+            window.currentProfile = null;
             document.getElementById('main-app').classList.remove('active');
             document.getElementById('profile-screen').style.display = 'flex';
-        }
+        };
+
+        window.showDeleteProfileModal = function() {
+            document.getElementById('delete-profile-modal').classList.add('active');
+            document.getElementById('delete-profile-pin').value = '';
+        };
+
+        window.closeDeleteProfileModal = function() {
+            document.getElementById('delete-profile-modal').classList.remove('active');
+        };
+
+        window.confirmDeleteProfile = async function() {
+            const enteredPin = document.getElementById('delete-profile-pin').value;
+
+            if (enteredPin !== window.currentProfile.pin) {
+                alert('Incorrect PIN!');
+                return;
+            }
+
+            if (!confirm('Are you absolutely sure? This cannot be undone!')) {
+                return;
+            }
+
+            try {
+                // Delete all words
+                const wordsSnapshot = await getDocs(collection(db, 'profiles', window.currentProfile.id, 'words'));
+                for (const wordDoc of wordsSnapshot.docs) {
+                    await deleteDoc(doc(db, 'profiles', window.currentProfile.id, 'words', wordDoc.id));
+                }
+
+                // Delete all sentences
+                const sentencesSnapshot = await getDocs(collection(db, 'profiles', window.currentProfile.id, 'sentences'));
+                for (const sentenceDoc of sentencesSnapshot.docs) {
+                    await deleteDoc(doc(db, 'profiles', window.currentProfile.id, 'sentences', sentenceDoc.id));
+                }
+
+                // Delete all courses
+                const coursesSnapshot = await getDocs(collection(db, 'profiles', window.currentProfile.id, 'courses'));
+                for (const courseDoc of coursesSnapshot.docs) {
+                    await deleteDoc(doc(db, 'profiles', window.currentProfile.id, 'courses', courseDoc.id));
+                }
+
+                // Delete profile
+                await deleteDoc(doc(db, 'profiles', window.currentProfile.id));
+
+                closeDeleteProfileModal();
+                logout();
+                alert('Profile deleted successfully');
+            } catch (error) {
+                console.error('Error deleting profile:', error);
+                alert('Error deleting profile. Please try again.');
+            }
+        };
 
         function loadProfileData() {
-            updateCourseSelects();
-            renderWords();
-            renderSentences();
-            renderCourses();
-            renderStudyList();
+            if (!isFirebaseConfigured || !window.currentProfile) return;
+
+            const profileId = window.currentProfile.id;
+
+            // Real-time listener for words
+            const wordsQuery = query(collection(db, 'profiles', profileId, 'words'), orderBy('timestamp', 'desc'));
+            onSnapshot(wordsQuery, (snapshot) => {
+                const words = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                window.currentWords = words;
+                renderWords();
+                renderStudyList();
+            });
+
+            // Real-time listener for sentences
+            const sentencesQuery = query(collection(db, 'profiles', profileId, 'sentences'), orderBy('timestamp', 'desc'));
+            onSnapshot(sentencesQuery, (snapshot) => {
+                const sentences = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                window.currentSentences = sentences;
+                renderSentences();
+            });
+
+            // Real-time listener for courses
+            const coursesQuery = query(collection(db, 'profiles', profileId, 'courses'), orderBy('timestamp', 'desc'));
+            onSnapshot(coursesQuery, (snapshot) => {
+                const courses = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                window.currentCourses = courses;
+                updateCourseSelects();
+                renderCourses();
+            });
         }
 
-        function saveProfileData() {
-            const profileIndex = profiles.findIndex(p => p.id === currentProfile.id);
-            if (profileIndex !== -1) {
-                profiles[profileIndex].data = currentProfile.data;
-                saveProfiles();
+        // Check for existing session on page load
+        window.addEventListener('load', function() {
+            const savedProfileId = sessionStorage.getItem('currentProfileId');
+            const savedProfileName = sessionStorage.getItem('currentProfileName');
+            const savedProfilePin = sessionStorage.getItem('currentProfilePin');
+
+            if (savedProfileId && savedProfileName && savedProfilePin) {
+                // Auto-login
+                window.currentProfile = {
+                    id: savedProfileId,
+                    name: savedProfileName,
+                    pin: savedProfilePin
+                };
+                
+                document.getElementById('profile-screen').style.display = 'none';
+                document.getElementById('main-app').classList.add('active');
+                document.getElementById('current-profile-name').textContent = savedProfileName;
+                
+                loadProfileData();
+            }
+        });
+
+        // Initialize
+        loadProfiles();
+
+        // Allow Enter key to submit PIN
+        document.getElementById('enter-pin').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyPin();
+            }
+        });
+
+        document.getElementById('new-profile-pin').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                createProfile();
+            }
+        });
+
+        document.getElementById('delete-profile-pin').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                confirmDeleteProfile();
+            }
+        });
+    </script>
+
+    <script>
+        // Initialize data holders
+        window.currentWords = [];
+        window.currentSentences = [];
+        window.currentCourses = [];
+
+        // Tab Management with Swipe
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                const currentIndex = window.tabOrder.indexOf(window.currentTab);
+                
+                if (diff > 0 && currentIndex < window.tabOrder.length - 1) {
+                    // Swipe left - next tab
+                    switchTab(window.tabOrder[currentIndex + 1]);
+                } else if (diff < 0 && currentIndex > 0) {
+                    // Swipe right - previous tab
+                    switchTab(window.tabOrder[currentIndex - 1]);
+                }
             }
         }
 
-        // Tab Management
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
         function switchTab(tab) {
+            // Update current tab
+            window.currentTab = tab;
+
+            // Update tab buttons
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+
+            // Update content sections
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            
-            event.target.classList.add('active');
             document.getElementById(tab + '-section').classList.add('active');
         }
 
         // Word Management
-        function addWord(event) {
+        async function addWord(event) {
             event.preventDefault();
             
-            const word = {
-                id: Date.now().toString(),
+            if (!window.isFirebaseConfigured || !window.currentProfile) return;
+
+            const wordData = {
                 word: document.getElementById('word-input').value,
                 meaning: document.getElementById('word-meaning').value,
                 example: document.getElementById('word-example').value,
                 course: document.getElementById('word-course').value,
-                date: new Date().toLocaleDateString()
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now()
             };
 
-            currentProfile.data.words.unshift(word);
-            saveProfileData();
-            renderWords();
-            renderStudyList();
-            event.target.reset();
+            try {
+                await window.firestoreModules.addDoc(
+                    window.firestoreModules.collection(window.db, 'profiles', window.currentProfile.id, 'words'),
+                    wordData
+                );
+                event.target.reset();
+            } catch (error) {
+                console.error('Error adding word:', error);
+                alert('Error adding word. Please try again.');
+            }
         }
 
         function editWord(id) {
-            const word = currentProfile.data.words.find(w => w.id === id);
+            const word = window.currentWords.find(w => w.id === id);
             if (!word) return;
 
-            currentEditId = id;
+            window.currentEditId = id;
             document.getElementById('edit-word-input').value = word.word;
             document.getElementById('edit-word-meaning').value = word.meaning;
             document.getElementById('edit-word-example').value = word.example || '';
             
-            // Populate courses
             const courseSelect = document.getElementById('edit-word-course');
             courseSelect.innerHTML = '<option value="">No Course</option>' + 
-                currentProfile.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                window.currentCourses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             courseSelect.value = word.course || '';
 
             document.getElementById('edit-word-modal').classList.add('active');
@@ -1140,38 +1534,48 @@
 
         function closeEditWordModal() {
             document.getElementById('edit-word-modal').classList.remove('active');
-            currentEditId = null;
+            window.currentEditId = null;
         }
 
-        function saveEditedWord() {
-            const wordIndex = currentProfile.data.words.findIndex(w => w.id === currentEditId);
-            if (wordIndex === -1) return;
+        async function saveEditedWord() {
+            if (!window.isFirebaseConfigured || !window.currentProfile || !window.currentEditId) return;
 
-            currentProfile.data.words[wordIndex].word = document.getElementById('edit-word-input').value;
-            currentProfile.data.words[wordIndex].meaning = document.getElementById('edit-word-meaning').value;
-            currentProfile.data.words[wordIndex].example = document.getElementById('edit-word-example').value;
-            currentProfile.data.words[wordIndex].course = document.getElementById('edit-word-course').value;
-
-            saveProfileData();
-            renderWords();
-            renderStudyList();
-            closeEditWordModal();
+            try {
+                await window.firestoreModules.updateDoc(
+                    window.firestoreModules.doc(window.db, 'profiles', window.currentProfile.id, 'words', window.currentEditId),
+                    {
+                        word: document.getElementById('edit-word-input').value,
+                        meaning: document.getElementById('edit-word-meaning').value,
+                        example: document.getElementById('edit-word-example').value,
+                        course: document.getElementById('edit-word-course').value
+                    }
+                );
+                closeEditWordModal();
+            } catch (error) {
+                console.error('Error updating word:', error);
+                alert('Error updating word. Please try again.');
+            }
         }
 
-        function deleteWord(id) {
-            if (confirm('Delete this word?')) {
-                currentProfile.data.words = currentProfile.data.words.filter(w => w.id !== id);
-                saveProfileData();
-                renderWords();
-                renderStudyList();
+        async function deleteWord(id) {
+            if (!confirm('Delete this word?')) return;
+            if (!window.isFirebaseConfigured || !window.currentProfile) return;
+
+            try {
+                await window.firestoreModules.deleteDoc(
+                    window.firestoreModules.doc(window.db, 'profiles', window.currentProfile.id, 'words', id)
+                );
+            } catch (error) {
+                console.error('Error deleting word:', error);
+                alert('Error deleting word. Please try again.');
             }
         }
 
         function renderWords(filtered = null) {
             const list = document.getElementById('words-list');
-            const words = filtered || currentProfile.data.words;
+            const words = filtered || window.currentWords;
 
-            if (words.length === 0) {
+            if (!words || words.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📖</div>
@@ -1181,26 +1585,8 @@
                 return;
             }
 
-const firebaseConfig = {
-
-  apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
-
-  authDomain: "english-learning-app-d6326.firebaseapp.com",
-
-  projectId: "english-learning-app-d6326",
-
-  storageBucket: "english-learning-app-d6326.firebasestorage.app",
-
-  messagingSenderId: "80639036133",
-
-  appId: "1:80639036133:web:f4284c24bb1ee95e7de20c",
-
-  measurementId: "G-VVWYDWEK6R"
-
-};
-            
             list.innerHTML = words.map(word => {
-                const course = currentProfile.data.courses.find(c => c.id === word.course);
+                const course = window.currentCourses.find(c => c.id === word.course);
                 return `
                     <div class="item-card">
                         <div class="item-header">
@@ -1226,7 +1612,7 @@ const firebaseConfig = {
                 renderWords();
                 return;
             }
-            const filtered = currentProfile.data.words.filter(w => 
+            const filtered = window.currentWords.filter(w => 
                 w.word.toLowerCase().includes(query.toLowerCase()) ||
                 w.meaning.toLowerCase().includes(query.toLowerCase())
             );
@@ -1234,35 +1620,42 @@ const firebaseConfig = {
         }
 
         // Sentence Management
-        function addSentence(event) {
+        async function addSentence(event) {
             event.preventDefault();
             
-            const sentence = {
-                id: Date.now().toString(),
+            if (!window.isFirebaseConfigured || !window.currentProfile) return;
+
+            const sentenceData = {
                 sentence: document.getElementById('sentence-input').value,
                 notes: document.getElementById('sentence-notes').value,
                 course: document.getElementById('sentence-course').value,
-                date: new Date().toLocaleDateString()
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now()
             };
 
-            currentProfile.data.sentences.unshift(sentence);
-            saveProfileData();
-            renderSentences();
-            event.target.reset();
+            try {
+                await window.firestoreModules.addDoc(
+                    window.firestoreModules.collection(window.db, 'profiles', window.currentProfile.id, 'sentences'),
+                    sentenceData
+                );
+                event.target.reset();
+            } catch (error) {
+                console.error('Error adding sentence:', error);
+                alert('Error adding sentence. Please try again.');
+            }
         }
 
         function editSentence(id) {
-            const sentence = currentProfile.data.sentences.find(s => s.id === id);
+            const sentence = window.currentSentences.find(s => s.id === id);
             if (!sentence) return;
 
-            currentEditId = id;
+            window.currentEditId = id;
             document.getElementById('edit-sentence-input').value = sentence.sentence;
             document.getElementById('edit-sentence-notes').value = sentence.notes || '';
             
-            // Populate courses
             const courseSelect = document.getElementById('edit-sentence-course');
             courseSelect.innerHTML = '<option value="">No Course</option>' + 
-                currentProfile.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                window.currentCourses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             courseSelect.value = sentence.course || '';
 
             document.getElementById('edit-sentence-modal').classList.add('active');
@@ -1270,35 +1663,47 @@ const firebaseConfig = {
 
         function closeEditSentenceModal() {
             document.getElementById('edit-sentence-modal').classList.remove('active');
-            currentEditId = null;
+            window.currentEditId = null;
         }
 
-        function saveEditedSentence() {
-            const sentenceIndex = currentProfile.data.sentences.findIndex(s => s.id === currentEditId);
-            if (sentenceIndex === -1) return;
+        async function saveEditedSentence() {
+            if (!window.isFirebaseConfigured || !window.currentProfile || !window.currentEditId) return;
 
-            currentProfile.data.sentences[sentenceIndex].sentence = document.getElementById('edit-sentence-input').value;
-            currentProfile.data.sentences[sentenceIndex].notes = document.getElementById('edit-sentence-notes').value;
-            currentProfile.data.sentences[sentenceIndex].course = document.getElementById('edit-sentence-course').value;
-
-            saveProfileData();
-            renderSentences();
-            closeEditSentenceModal();
+            try {
+                await window.firestoreModules.updateDoc(
+                    window.firestoreModules.doc(window.db, 'profiles', window.currentProfile.id, 'sentences', window.currentEditId),
+                    {
+                        sentence: document.getElementById('edit-sentence-input').value,
+                        notes: document.getElementById('edit-sentence-notes').value,
+                        course: document.getElementById('edit-sentence-course').value
+                    }
+                );
+                closeEditSentenceModal();
+            } catch (error) {
+                console.error('Error updating sentence:', error);
+                alert('Error updating sentence. Please try again.');
+            }
         }
 
-        function deleteSentence(id) {
-            if (confirm('Delete this sentence?')) {
-                currentProfile.data.sentences = currentProfile.data.sentences.filter(s => s.id !== id);
-                saveProfileData();
-                renderSentences();
+        async function deleteSentence(id) {
+            if (!confirm('Delete this sentence?')) return;
+            if (!window.isFirebaseConfigured || !window.currentProfile) return;
+
+            try {
+                await window.firestoreModules.deleteDoc(
+                    window.firestoreModules.doc(window.db, 'profiles', window.currentProfile.id, 'sentences', id)
+                );
+            } catch (error) {
+                console.error('Error deleting sentence:', error);
+                alert('Error deleting sentence. Please try again.');
             }
         }
 
         function renderSentences(filtered = null) {
             const list = document.getElementById('sentences-list');
-            const sentences = filtered || currentProfile.data.sentences;
+            const sentences = filtered || window.currentSentences;
 
-            if (sentences.length === 0) {
+            if (!sentences || sentences.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">💬</div>
@@ -1309,7 +1714,7 @@ const firebaseConfig = {
             }
 
             list.innerHTML = sentences.map(sentence => {
-                const course = currentProfile.data.courses.find(c => c.id === sentence.course);
+                const course = window.currentCourses.find(c => c.id === sentence.course);
                 return `
                     <div class="item-card">
                         <div class="item-header">
@@ -1335,7 +1740,7 @@ const firebaseConfig = {
                 renderSentences();
                 return;
             }
-            const filtered = currentProfile.data.sentences.filter(s => 
+            const filtered = window.currentSentences.filter(s => 
                 s.sentence.toLowerCase().includes(query.toLowerCase()) ||
                 (s.notes && s.notes.toLowerCase().includes(query.toLowerCase()))
             );
@@ -1343,38 +1748,82 @@ const firebaseConfig = {
         }
 
         // Course Management
-        function addCourse(event) {
+        async function addCourse(event) {
             event.preventDefault();
             
-            const course = {
-                id: Date.now().toString(),
+            if (!window.isFirebaseConfigured || !window.currentProfile) return;
+
+            const courseData = {
                 name: document.getElementById('course-name').value,
                 description: document.getElementById('course-description').value,
-                date: new Date().toLocaleDateString()
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now()
             };
 
-            currentProfile.data.courses.unshift(course);
-            saveProfileData();
-            updateCourseSelects();
-            renderCourses();
-            event.target.reset();
+            try {
+                await window.firestoreModules.addDoc(
+                    window.firestoreModules.collection(window.db, 'profiles', window.currentProfile.id, 'courses'),
+                    courseData
+                );
+                event.target.reset();
+            } catch (error) {
+                console.error('Error adding course:', error);
+                alert('Error adding course. Please try again.');
+            }
         }
 
-        function deleteCourse(id) {
-            if (confirm('Delete this course? Words and sentences will not be deleted.')) {
-                currentProfile.data.courses = currentProfile.data.courses.filter(c => c.id !== id);
-                saveProfileData();
-                updateCourseSelects();
-                renderCourses();
-                renderWords();
-                renderSentences();
+        function editCourse(id) {
+            const course = window.currentCourses.find(c => c.id === id);
+            if (!course) return;
+
+            window.currentEditId = id;
+            document.getElementById('edit-course-name').value = course.name;
+            document.getElementById('edit-course-description').value = course.description || '';
+
+            document.getElementById('edit-course-modal').classList.add('active');
+        }
+
+        function closeEditCourseModal() {
+            document.getElementById('edit-course-modal').classList.remove('active');
+            window.currentEditId = null;
+        }
+
+        async function saveEditedCourse() {
+            if (!window.isFirebaseConfigured || !window.currentProfile || !window.currentEditId) return;
+
+            try {
+                await window.firestoreModules.updateDoc(
+                    window.firestoreModules.doc(window.db, 'profiles', window.currentProfile.id, 'courses', window.currentEditId),
+                    {
+                        name: document.getElementById('edit-course-name').value,
+                        description: document.getElementById('edit-course-description').value
+                    }
+                );
+                closeEditCourseModal();
+            } catch (error) {
+                console.error('Error updating course:', error);
+                alert('Error updating course. Please try again.');
+            }
+        }
+
+        async function deleteCourse(id) {
+            if (!confirm('Delete this course? Words and sentences will not be deleted.')) return;
+            if (!window.isFirebaseConfigured || !window.currentProfile) return;
+
+            try {
+                await window.firestoreModules.deleteDoc(
+                    window.firestoreModules.doc(window.db, 'profiles', window.currentProfile.id, 'courses', id)
+                );
+            } catch (error) {
+                console.error('Error deleting course:', error);
+                alert('Error deleting course. Please try again.');
             }
         }
 
         function renderCourses() {
             const list = document.getElementById('courses-list');
 
-            if (currentProfile.data.courses.length === 0) {
+            if (!window.currentCourses || window.currentCourses.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🎓</div>
@@ -1384,15 +1833,18 @@ const firebaseConfig = {
                 return;
             }
 
-            list.innerHTML = currentProfile.data.courses.map(course => {
-                const wordCount = currentProfile.data.words.filter(w => w.course === course.id).length;
-                const sentenceCount = currentProfile.data.sentences.filter(s => s.course === course.id).length;
+            list.innerHTML = window.currentCourses.map(course => {
+                const wordCount = window.currentWords.filter(w => w.course === course.id).length;
+                const sentenceCount = window.currentSentences.filter(s => s.course === course.id).length;
                 
                 return `
                     <div class="course-item">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div class="course-title">${course.name}</div>
-                            <button class="icon-btn" onclick="deleteCourse('${course.id}')" title="Delete">🗑️</button>
+                            <div class="item-actions">
+                                <button class="icon-btn" onclick="editCourse('${course.id}')" title="Edit">✏️</button>
+                                <button class="icon-btn" onclick="deleteCourse('${course.id}')" title="Delete">🗑️</button>
+                            </div>
                         </div>
                         ${course.description ? `<div class="course-description">${course.description}</div>` : ''}
                         <div class="course-stats">
@@ -1411,10 +1863,10 @@ const firebaseConfig = {
             const studyFilter = document.getElementById('study-filter');
             
             const options = '<option value="">No Course</option>' + 
-                currentProfile.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                window.currentCourses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             
             const filterOptions = '<option value="">All Courses</option>' + 
-                currentProfile.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                window.currentCourses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             
             wordSelect.innerHTML = options;
             sentenceSelect.innerHTML = options;
@@ -1424,7 +1876,7 @@ const firebaseConfig = {
         // Study Section
         function renderStudyList(filtered = null) {
             const list = document.getElementById('study-list');
-            let words = filtered !== null ? filtered : [...currentProfile.data.words];
+            let words = filtered !== null ? filtered : [...window.currentWords];
 
             const courseFilter = document.getElementById('study-filter').value;
             if (courseFilter && filtered === null) {
@@ -1433,14 +1885,14 @@ const firebaseConfig = {
 
             const sortOption = document.getElementById('study-sort').value;
             if (sortOption === 'newest') {
-                words.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+                words.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
             } else if (sortOption === 'oldest') {
-                words.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+                words.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
             } else if (sortOption === 'alphabetical') {
                 words.sort((a, b) => a.word.localeCompare(b.word));
             }
 
-            if (words.length === 0) {
+            if (!words || words.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📚</div>
@@ -1472,7 +1924,7 @@ const firebaseConfig = {
             `;
 
             const wordsHTML = words.map((word, index) => {
-                const course = currentProfile.data.courses.find(c => c.id === word.course);
+                const course = window.currentCourses.find(c => c.id === word.course);
                 return `
                     <div class="dictionary-card">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -1495,7 +1947,7 @@ const firebaseConfig = {
                 renderStudyList();
                 return;
             }
-            const filtered = currentProfile.data.words.filter(w => 
+            const filtered = window.currentWords.filter(w => 
                 w.word.toLowerCase().includes(query.toLowerCase()) ||
                 w.meaning.toLowerCase().includes(query.toLowerCase()) ||
                 (w.example && w.example.toLowerCase().includes(query.toLowerCase()))
@@ -1503,21 +1955,27 @@ const firebaseConfig = {
             renderStudyList(filtered);
         }
 
-        // Initialize
-        loadProfiles();
-
-        // Allow Enter key to submit PIN
-        document.getElementById('enter-pin').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                verifyPin();
-            }
-        });
-
-        document.getElementById('new-profile-pin').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                createProfile();
-            }
-        });
+        // Make functions global
+        window.switchTab = switchTab;
+        window.addWord = addWord;
+        window.editWord = editWord;
+        window.closeEditWordModal = closeEditWordModal;
+        window.saveEditedWord = saveEditedWord;
+        window.deleteWord = deleteWord;
+        window.searchWords = searchWords;
+        window.addSentence = addSentence;
+        window.editSentence = editSentence;
+        window.closeEditSentenceModal = closeEditSentenceModal;
+        window.saveEditedSentence = saveEditedSentence;
+        window.deleteSentence = deleteSentence;
+        window.searchSentences = searchSentences;
+        window.addCourse = addCourse;
+        window.editCourse = editCourse;
+        window.closeEditCourseModal = closeEditCourseModal;
+        window.saveEditedCourse = saveEditedCourse;
+        window.deleteCourse = deleteCourse;
+        window.renderStudyList = renderStudyList;
+        window.searchStudyList = searchStudyList;
     </script>
 </body>
 </html>

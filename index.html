@@ -8,16 +8,12 @@
 
 <body>
 
-<div class="container">
-
-<!-- PROFILE SCREEN -->
 <div id="profile-screen">
     <h1>📚 English Learning</h1>
     <div id="profiles-list"></div>
-    <button onclick="openCreateProfile()">➕ Create Profile</button>
+    <button onclick="showCreateProfile()">➕ Create Profile</button>
 </div>
 
-<!-- MAIN APP -->
 <div id="main-app" style="display:none">
     <h2 id="current-profile-name"></h2>
     <button onclick="logout()">Logout</button>
@@ -33,17 +29,17 @@
     <div id="words-list"></div>
 </div>
 
-<!-- CREATE PROFILE MODAL -->
+<!-- CREATE PROFILE -->
 <div id="create-profile" style="display:none">
-    <input id="new-name" placeholder="Profile Name">
-    <input id="new-pin" placeholder="4 Digit PIN" maxlength="4">
+    <input id="new-profile-name" placeholder="Profile Name">
+    <input id="new-profile-pin" placeholder="4 Digit PIN" maxlength="4">
     <button onclick="createProfile()">Create</button>
 </div>
 
 <!-- PIN MODAL -->
 <div id="pin-modal" style="display:none">
-    <h3 id="pin-name"></h3>
-    <input id="pin-input" maxlength="4">
+    <h3 id="pin-profile-name"></h3>
+    <input id="enter-pin" maxlength="4">
     <button onclick="verifyPin()">Enter</button>
 </div>
 
@@ -51,80 +47,82 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  query,
-  orderBy
+    getFirestore,
+    collection,
+    addDoc,
+    getDoc,
+    getDocs,
+    deleteDoc,
+    doc,
+    onSnapshot,
+    query,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
-  authDomain: "english-learning-app-d6326.firebaseapp.com",
-  projectId: "english-learning-app-d6326",
-  storageBucket: "english-learning-app-d6326.firebasestorage.app",
-  messagingSenderId: "80639036133",
-  appId: "1:80639036133:web:f4284c24bb1ee95e7de20c",
-  measurementId: "G-VVWYDWEK6R"
+    apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
+    authDomain: "english-learning-app-d6326.firebaseapp.com",
+    projectId: "english-learning-app-d6326",
+    storageBucket: "english-learning-app-d6326.firebasestorage.app",
+    messagingSenderId: "80639036133",
+    appId: "1:80639036133:web:f4284c24bb1ee95e7de20c",
+    measurementId: "G-VVWYDWEK6R"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.fs = {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  query,
-  orderBy,
-  db
+    db,
+    collection,
+    addDoc,
+    getDoc,
+    getDocs,
+    deleteDoc,
+    doc,
+    onSnapshot,
+    query,
+    orderBy
 };
 </script>
 
 <script>
-/* =======================
+/* ======================
    GLOBAL STATE
-======================= */
+====================== */
 let currentProfile = null;
 let selectedProfile = null;
 let words = [];
 
-/* =======================
-   PROFILE (FIRESTORE)
-======================= */
+/* ======================
+   PROFILES (FIRESTORE)
+====================== */
 
 async function loadProfiles() {
     const snap = await fs.getDocs(fs.collection(fs.db, "profiles"));
     const list = document.getElementById("profiles-list");
     list.innerHTML = "";
 
-    snap.forEach(docu => {
-        const p = { id: docu.id, ...docu.data() };
+    snap.forEach(d => {
+        const p = d.data();
         list.innerHTML += `
-            <button onclick="selectProfile('${p.id}','${p.name}')">
+            <button onclick="selectProfile('${d.id}','${p.name}')">
                 👤 ${p.name}
             </button>
         `;
     });
 }
 
-function openCreateProfile() {
+function showCreateProfile() {
     document.getElementById("create-profile").style.display = "block";
 }
 
 async function createProfile() {
-    const name = new-name.value.trim();
-    const pin = new-pin.value;
+    const name = new-profile-name.value.trim();
+    const pin = new-profile-pin.value;
 
     if (!name || pin.length !== 4) {
-        alert("Name & 4-digit PIN required");
+        alert("Name and 4-digit PIN required");
         return;
     }
 
@@ -134,37 +132,28 @@ async function createProfile() {
         createdAt: Date.now()
     });
 
-    new-name.value = "";
-    new-pin.value = "";
+    new-profile-name.value = "";
+    new-profile-pin.value = "";
     create-profile.style.display = "none";
     loadProfiles();
 }
 
 function selectProfile(id, name) {
     selectedProfile = { id, name };
-    pin-name.textContent = name;
+    pin-profile-name.textContent = name;
     pin-modal.style.display = "block";
 }
 
 async function verifyPin() {
-    const entered = pin-input.value;
-    const ref = fs.doc(fs.db, "profiles", selectedProfile.id);
-    const snap = await fs.getDocs(fs.collection(ref, "dummy")); // force fetch
-    const profileSnap = await fs.getDocs(fs.collection(fs.db, "profiles"));
+    const enteredPin = enter-pin.value;
+    const snap = await fs.getDoc(fs.doc(fs.db, "profiles", selectedProfile.id));
 
-    let correct = false;
-    profileSnap.forEach(p => {
-        if (p.id === selectedProfile.id && p.data().pin === entered) {
-            correct = true;
-        }
-    });
-
-    if (!correct) {
-        alert("Wrong PIN");
+    if (!snap.exists() || snap.data().pin !== enteredPin) {
+        alert("Incorrect PIN");
         return;
     }
 
-    currentProfile = selectedProfile;
+    currentProfile = { id: selectedProfile.id, name: snap.data().name };
     pin-modal.style.display = "none";
     login();
 }
@@ -182,9 +171,9 @@ function logout() {
     profile-screen.style.display = "block";
 }
 
-/* =======================
-   WORDS (FIRESTORE – CODE 1 STYLE)
-======================= */
+/* ======================
+   WORDS (CODE 1 STYLE)
+====================== */
 
 function listenWords() {
     fs.onSnapshot(
@@ -193,7 +182,10 @@ function listenWords() {
             fs.orderBy("timestamp", "desc")
         ),
         snap => {
-            words = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            words = snap.docs.map(d => ({
+                id: d.id,
+                ...d.data()
+            }));
             renderWords();
         }
     );
@@ -222,12 +214,13 @@ async function deleteWord(id) {
     );
 }
 
-/* =======================
+/* ======================
    UI
-======================= */
+====================== */
 
 function renderWords() {
     const list = document.getElementById("words-list");
+
     if (words.length === 0) {
         list.innerHTML = "No words yet";
         return;
@@ -235,9 +228,11 @@ function renderWords() {
 
     list.innerHTML = words.map(w => `
         <div>
-            <b>${w.word}</b> — ${w.meaning}
+            <b>${w.word}</b> – ${w.meaning}
+            ${w.example ? `<div><i>${w.example}</i></div>` : ""}
             <button onclick="deleteWord('${w.id}')">🗑️</button>
         </div>
+        <hr>
     `).join("");
 }
 

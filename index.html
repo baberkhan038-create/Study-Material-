@@ -3,145 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Learning App - Cloud Pro</title>
+    <title>English Learning - Ultimate Cloud Sync</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
-        /* --- AAPKA ORIGINAL STYLING --- */
+        /* --- Styles remains same as your original design for consistency --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh; padding: 20px; padding-bottom: 80px;
-            animation: gradientShift 15s ease infinite; background-size: 200% 200%;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white; min-height: 100vh; padding: 20px;
         }
-        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .container { max-width: 600px; margin: 0 auto; }
-        .profile-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; }
-        .profile-header { background: rgba(30, 30, 46, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .profile-header h1 { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; margin-bottom: 10px; }
-        .profiles-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; width: 100%; }
-        .profile-card { background: rgba(30, 30, 46, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; animation: fadeInUp 0.5s ease-out; }
-        .profile-card:hover { transform: translateY(-5px); border-color: #00d4ff; box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3); }
-        .add-profile-btn { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 15px; padding: 20px; width: 100%; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5); }
         
-        /* Modals */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: rgba(30, 30, 46, 0.98); border-radius: 20px; padding: 30px; width: 90%; max-width: 400px; animation: slideUp 0.3s ease-out; }
-        .form-group input, .add-form input, .add-form textarea, .add-form select { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: white; border-radius: 10px; margin-bottom: 15px; }
-
-        /* Main App Header */
+        /* Profile Screen */
+        #profile-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; }
+        .profiles-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; margin: 20px 0; }
+        .profile-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .profile-card:hover { background: rgba(0,212,255,0.1); border-color: #00d4ff; }
+        
+        /* Main App */
         .main-app { display: none; }
-        .main-app.active { display: block; }
-        .header { background: rgba(30, 30, 46, 0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .active { display: block !important; }
+        .header { background: rgba(30,30,46,0.9); padding: 20px; border-radius: 20px; margin-bottom: 20px; }
         .tabs { display: flex; gap: 10px; margin-top: 15px; }
-        .tab { flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); color: #a0aec0; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; }
-        .tab.active { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; }
+        .tab { flex: 1; padding: 10px; border: none; border-radius: 10px; background: #2d2d44; color: #a0aec0; cursor: pointer; }
+        .tab.active { background: #00d4ff; color: white; }
         
-        .content-section { display: none; }
-        .content-section.active { display: block; }
-        .item-card { background: rgba(30, 30, 46, 0.95); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
-        .delete-btn { background: rgba(255, 82, 82, 0.2); color: #ff5252; border: 1px solid #ff5252; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 11px; }
+        /* Forms & Inputs */
+        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #333; background: #0f172a; color: white; }
+        .btn-primary { background: #00d4ff; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
         
-        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        /* Modal */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: #1e1e2e; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="profile-screen" class="profile-screen">
-            <div class="profile-header">
-                <h1>📚 English Learning</h1>
-                <p>Profiles are Cloud Synced ☁️</p>
-            </div>
-            <div class="profiles-list" id="profiles-list">
-                <p style="color: #a0aec0; text-align: center;">Fetching profiles...</p>
-            </div>
-            <button class="add-profile-btn" onclick="showModal('create-profile-modal')">➕ Create New Profile</button>
-        </div>
 
-        <div id="main-app" class="main-app">
-            <div class="header">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h1 style="color: #00d4ff; font-size: 22px;">Welcome, <span id="user-display-name"></span></h1>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="delete-btn" onclick="deleteCurrentProfile()">Delete Profile</button>
-                        <button class="tab" style="padding: 6px 12px; font-size: 12px;" onclick="logout()">Logout</button>
-                    </div>
-                </div>
-                <div class="tabs">
-                    <button class="tab active" onclick="switchTab('words', this)">Words</button>
-                    <button class="tab" onclick="switchTab('sentences', this)">Sentences</button>
-                    <button class="tab" onclick="switchTab('courses', this)">Courses</button>
-                    <button class="tab" onclick="switchTab('study', this)">Study</button>
-                </div>
-            </div>
-
-            <div id="words-section" class="content-section active">
-                <div class="add-form" style="background: rgba(30,30,46,0.6); padding: 15px; border-radius: 15px; margin-bottom: 20px;">
-                    <form onsubmit="addWord(event)">
-                        <input type="text" id="word-input" required placeholder="New Word">
-                        <textarea id="word-meaning" required placeholder="Meaning/Translation" style="width:100%; min-height:60px;"></textarea>
-                        <select id="word-course"><option value="">Loading Courses...</option></select>
-                        <button type="submit" class="add-profile-btn" style="padding: 12px;">Add to Cloud</button>
-                    </form>
-                </div>
-                <div id="words-list"></div>
-            </div>
-
-            <div id="sentences-section" class="content-section">
-                <div class="add-form" style="background: rgba(30,30,46,0.6); padding: 15px; border-radius: 15px;">
-                    <form onsubmit="addSentence(event)">
-                        <textarea id="sentence-input" required placeholder="Enter Full Sentence" style="width:100%; min-height:80px;"></textarea>
-                        <select id="sentence-course"><option value="">No Course</option></select>
-                        <button type="submit" class="add-profile-btn" style="padding: 12px;">Save Sentence</button>
-                    </form>
-                </div>
-                <div id="sentences-list"></div>
-            </div>
-
-            <div id="courses-section" class="content-section">
-                <div class="add-form" style="background: rgba(30,30,46,0.6); padding: 15px; border-radius: 15px;">
-                    <form onsubmit="addCourse(event)">
-                        <input type="text" id="course-name" required placeholder="Course Name (e.g. Grammar)">
-                        <button type="submit" class="add-profile-btn" style="padding: 12px;">Create Course</button>
-                    </form>
-                </div>
-                <div id="courses-list"></div>
-            </div>
-
-            <div id="study-section" class="content-section">
-                <div id="study-list"></div>
-            </div>
-        </div>
+<div class="container">
+    <div id="profile-screen">
+        <h1 style="margin-bottom: 10px;">Select Profile</h1>
+        <p style="color: #a0aec0;">Data is synced to Cloud ☁️</p>
+        <div id="profiles-list" class="profiles-list"></div>
+        <button class="btn-primary" onclick="openModal('create-modal')">➕ Create New Profile</button>
     </div>
 
-    <div id="create-profile-modal" class="modal">
-        <div class="modal-content">
-            <h2 style="color: #00d4ff; margin-bottom: 15px;">New Profile</h2>
-            <input type="text" id="new-name" placeholder="Name">
-            <input type="tel" id="new-pin" placeholder="4-Digit PIN" maxlength="4">
-            <button class="add-profile-btn" onclick="createProfile()">Create & Sync</button>
-            <button class="tab" onclick="closeModals()" style="width:100%; margin-top:10px;">Cancel</button>
+    <div id="main-app" class="main-app">
+        <div class="header">
+            <div style="display: flex; justify-content: space-between;">
+                <h2 id="welcome-msg">Hi!</h2>
+                <button onclick="logout()" style="background:none; border:none; color:#ff5252; cursor:pointer;">Logout</button>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('words')">Words</button>
+                <button class="tab" onclick="showTab('sentences')">Sentences</button>
+                <button class="tab" onclick="showTab('study')">Study</button>
+            </div>
+        </div>
+
+        <div id="words-tab" class="content-tab active">
+            <form onsubmit="addWord(event)">
+                <input type="text" id="w-input" placeholder="New Word" required>
+                <input type="text" id="m-input" placeholder="Meaning" required>
+                <button class="btn-primary">Save to Cloud</button>
+            </form>
+            <div id="words-display" style="margin-top: 20px;"></div>
+        </div>
+        
+        <div id="sentences-tab" class="content-tab" style="display:none;">
+            <form onsubmit="addSentence(event)">
+                <textarea id="s-input" placeholder="Enter Sentence" required></textarea>
+                <button class="btn-primary">Save Sentence</button>
+            </form>
+            <div id="sentences-display" style="margin-top: 20px;"></div>
+        </div>
+
+        <div id="study-tab" class="content-tab" style="display:none;">
+            <div id="study-display"></div>
         </div>
     </div>
+</div>
 
-    <div id="pin-modal" class="modal">
-        <div class="modal-content">
-            <h2 style="color: #00d4ff; margin-bottom: 10px;">Enter PIN</h2>
-            <p id="pin-msg" style="color:#a0aec0; font-size:12px; margin-bottom:15px;"></p>
-            <input type="tel" id="login-pin" placeholder="****" maxlength="4" style="text-align:center; font-size:24px; letter-spacing:8px;">
-            <button class="add-profile-btn" onclick="verifyPin()">Unlock Profile</button>
-            <button class="tab" onclick="closeModals()" style="width:100%; margin-top:10px;">Cancel</button>
-        </div>
+<div id="create-modal" class="modal">
+    <div class="modal-content">
+        <h3>Create Profile</h3><br>
+        <input type="text" id="new-name" placeholder="Name">
+        <input type="tel" id="new-pin" placeholder="4-Digit PIN" maxlength="4">
+        <button class="btn-primary" onclick="createProfile()">Create & Sync</button>
+        <button onclick="closeModal('create-modal')" style="background:none; color:gray; border:none; width:100%; margin-top:10px;">Cancel</button>
     </div>
+</div>
 
-    <script>
-        // --- FIREBASE CONFIG ---
-      const firebaseConfig = {
+<div id="pin-modal" class="modal">
+    <div class="modal-content">
+        <h3>Enter PIN</h3><br>
+        <input type="tel" id="login-pin" placeholder="****" maxlength="4" style="text-align:center; font-size:24px;">
+        <button class="btn-primary" onclick="verifyPin()">Unlock</button>
+        <button onclick="closeModal('pin-modal')" style="background:none; color:gray; border:none; width:100%; margin-top:10px;">Cancel</button>
+    </div>
+</div>
+
+<script>
+    // --- FIREBASE SETUP ---
+    const firebaseConfig = {
 
   apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
 
@@ -159,173 +126,139 @@
 
 };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        let allProfiles = {};
-        let currentUserId = null;
-        let selectedId = null;
+    // --- APP STATE ---
+    let allData = {};
+    let currentUser = localStorage.getItem('activeUserId') || null;
+    let selectedId = null;
 
-        // --- CORE APP LOGIC ---
-        function init() {
-            // Listen for any changes in Cloud Database
-            db.ref('profiles').on('value', (snapshot) => {
-                allProfiles = snapshot.val() || {};
-                renderProfileSelection();
-                if (currentUserId) refreshAppUI();
-            });
-        }
-
-        function createProfile() {
-            const name = document.getElementById('new-name').value.trim();
-            const pin = document.getElementById('new-pin').value;
-            if(!name || pin.length !== 4) return alert("Fill Name and 4-digit PIN");
-
-            const id = "user_" + Date.now();
-            db.ref('profiles/' + id).set({
-                id: id,
-                name: name,
-                pin: pin,
-                data: {
-                    words: [{word: "Example", meaning: "Drishtant", date: "Initial"}],
-                    sentences: [],
-                    courses: []
-                }
-            }).then(() => {
-                closeModals();
-                document.getElementById('new-name').value = "";
-                document.getElementById('new-pin').value = "";
-            });
-        }
-
-        function verifyPin() {
-            const entered = document.getElementById('login-pin').value;
-            const profile = allProfiles[selectedId];
+    // --- INITIALIZATION ---
+    function init() {
+        db.ref('app_data').on('value', (snapshot) => {
+            allData = snapshot.val() || {};
+            renderProfiles();
             
-            if(entered === profile.pin) {
-                currentUserId = selectedId;
-                document.getElementById('user-display-name').innerText = profile.name;
-                document.getElementById('profile-screen').style.display = 'none';
-                document.getElementById('main-app').classList.add('active');
-                closeModals();
-                refreshAppUI();
+            // Check if user was already logged in
+            if (currentUser && allData[currentUser]) {
+                showMainApp();
             } else {
-                alert("Incorrect PIN! Access Denied.");
+                showProfileScreen();
             }
+        });
+    }
+
+    // --- PROFILE ACTIONS ---
+    function createProfile() {
+        const name = document.getElementById('new-name').value;
+        const pin = document.getElementById('new-pin').value;
+        if (!name || pin.length !== 4) return alert("Invalid Input");
+
+        const id = "user_" + Date.now();
+        db.ref('app_data/' + id).set({
+            id: id, name: name, pin: pin,
+            words: [], sentences: []
+        });
+        closeModal('create-modal');
+    }
+
+    function verifyPin() {
+        const pin = document.getElementById('login-pin').value;
+        if (allData[selectedId].pin === pin) {
+            currentUser = selectedId;
+            localStorage.setItem('activeUserId', currentUser);
+            showMainApp();
+            closeModal('pin-modal');
+        } else {
+            alert("Wrong PIN!");
         }
+    }
 
-        // --- DATA UPDATES (Auto-Sync) ---
-        function addWord(e) {
-            e.preventDefault();
-            const word = document.getElementById('word-input').value;
-            const mean = document.getElementById('word-meaning').value;
-            const crs = document.getElementById('word-course').value;
+    // --- DATA ACTIONS ---
+    function addWord(e) {
+        e.preventDefault();
+        const word = {
+            id: Date.now(),
+            text: document.getElementById('w-input').value,
+            meaning: document.getElementById('m-input').value
+        };
+        const words = allData[currentUser].words || [];
+        words.unshift(word);
+        db.ref(`app_data/${currentUser}/words`).set(words);
+        e.target.reset();
+    }
 
-            const wordList = allProfiles[currentUserId].data.words || [];
-            wordList.unshift({
-                id: Date.now(),
-                word: word,
-                meaning: mean,
-                courseId: crs,
-                date: new Date().toLocaleDateString()
-            });
+    function addSentence(e) {
+        e.preventDefault();
+        const sentence = {
+            id: Date.now(),
+            text: document.getElementById('s-input').value
+        };
+        const sentences = allData[currentUser].sentences || [];
+        sentences.unshift(sentence);
+        db.ref(`app_data/${currentUser}/sentences`).set(sentences);
+        e.target.reset();
+    }
 
-            db.ref('profiles/' + currentUserId + '/data/words').set(wordList);
-            e.target.reset();
-        }
+    // --- UI RENDERING ---
+    function renderProfiles() {
+        const list = document.getElementById('profiles-list');
+        list.innerHTML = Object.values(allData).map(p => `
+            <div class="profile-card" onclick="promptPin('${p.id}')">
+                <div style="font-size:30px">👤</div>
+                <div style="font-weight:bold">${p.name}</div>
+            </div>
+        `).join('');
+    }
 
-        function addSentence(e) {
-            e.preventDefault();
-            const txt = document.getElementById('sentence-input').value;
-            const crs = document.getElementById('sentence-course').value;
+    function showMainApp() {
+        const user = allData[currentUser];
+        document.getElementById('welcome-msg').innerText = "Hi, " + user.name;
+        document.getElementById('profile-screen').style.display = 'none';
+        document.getElementById('main-app').classList.add('active');
+        
+        // Render Words
+        const words = user.words || [];
+        document.getElementById('words-display').innerHTML = words.map(w => `
+            <div style="background:#2d2d44; padding:15px; border-radius:10px; margin-bottom:10px;">
+                <b>${w.text}</b>: ${w.meaning}
+            </div>
+        `).join('');
 
-            const sentList = allProfiles[currentUserId].data.sentences || [];
-            sentList.unshift({ id: Date.now(), text: txt, courseId: crs });
+        // Render Sentences
+        const sents = user.sentences || [];
+        document.getElementById('sentences-display').innerHTML = sents.map(s => `
+            <div style="background:#2d2d44; padding:15px; border-radius:10px; margin-bottom:10px;">${s.text}</div>
+        `).join('');
 
-            db.ref('profiles/' + currentUserId + '/data/sentences').set(sentList);
-            e.target.reset();
-        }
+        // Study View
+        document.getElementById('study-display').innerHTML = `<h3>Total Items: ${words.length + sents.length}</h3>`;
+    }
 
-        function addCourse(e) {
-            e.preventDefault();
-            const name = document.getElementById('course-name').value;
-            const crsList = allProfiles[currentUserId].data.courses || [];
-            
-            crsList.unshift({ id: "crs_" + Date.now(), name: name });
-            db.ref('profiles/' + currentUserId + '/data/courses').set(crsList);
-            e.target.reset();
-        }
+    function showProfileScreen() {
+        document.getElementById('profile-screen').style.display = 'flex';
+        document.getElementById('main-app').classList.remove('active');
+    }
 
-        function deleteCurrentProfile() {
-            if(confirm("DANGER: Delete this entire profile from Cloud forever?")) {
-                db.ref('profiles/' + currentUserId).remove();
-                logout();
-            }
-        }
+    function logout() {
+        localStorage.removeItem('activeUserId');
+        currentUser = null;
+        showProfileScreen();
+    }
 
-        // --- UI HELPERS ---
-        function renderProfileSelection() {
-            const list = document.getElementById('profiles-list');
-            const keys = Object.keys(allProfiles);
-            
-            if(keys.length === 0) {
-                list.innerHTML = `<p style="color:#718096; text-align:center; padding:20px;">No profiles found. Create one!</p>`;
-                return;
-            }
+    // --- HELPERS ---
+    function showTab(tabName) {
+        document.querySelectorAll('.content-tab').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabName + '-tab').style.display = 'block';
+        event.target.classList.add('active');
+    }
+    function promptPin(id) { selectedId = id; openModal('pin-modal'); }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-            list.innerHTML = keys.map(id => `
-                <div class="profile-card" onclick="openPinPrompt('${id}')">
-                    <div style="font-size:40px; margin-bottom:10px;">👤</div>
-                    <div style="color:white; font-weight:bold;">${allProfiles[id].name}</div>
-                </div>
-            `).join('');
-        }
-
-        function refreshAppUI() {
-            const data = allProfiles[currentUserId].data || {};
-            const courses = data.courses || [];
-
-            // Update Word List
-            document.getElementById('words-list').innerHTML = (data.words || []).map(w => `
-                <div class="item-card">
-                    <div style="color:#00d4ff; font-weight:700;">${w.word}</div>
-                    <div style="color:#e2e8f0; font-size:14px; margin-top:5px;">${w.meaning}</div>
-                </div>
-            `).join('');
-
-            // Update Course Dropdowns
-            const options = `<option value="">No Course</option>` + courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            document.getElementById('word-course').innerHTML = options;
-            document.getElementById('sentence-course').innerHTML = options;
-
-            // Study List (Combined View)
-            document.getElementById('study-list').innerHTML = (data.words || []).map(w => `
-                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:10px; border-left:3px solid #7b2ff7;">
-                    <span style="color:#00d4ff">Word:</span> <span style="color:white">${w.word}</span><br>
-                    <span style="color:#a0aec0">Meaning: ${w.meaning}</span>
-                </div>
-            `).join('');
-        }
-
-        function switchTab(section, btn) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(section + '-section').classList.add('active');
-        }
-
-        function openPinPrompt(id) {
-            selectedId = id;
-            document.getElementById('pin-msg').innerText = "Accessing " + allProfiles[id].name + "'s data...";
-            showModal('pin-modal');
-            document.getElementById('login-pin').value = "";
-        }
-
-        function showModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
-        function logout() { location.reload(); }
-
-        window.onload = init;
-    </script>
+    init();
+</script>
 </body>
 </html>

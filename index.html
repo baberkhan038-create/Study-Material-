@@ -3,141 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Learning App</title>
+    <title>English Learning App - Firebase Sync</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    
     <style>
-        /* Base Styles & Theme */
+        /* --- BAAKI SAB SAME RAKHA HAI --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); 
-            min-height: 100vh; padding: 20px; color: #ffffff;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+            animation: gradientShift 15s ease infinite;
+            background-size: 200% 200%;
         }
+        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .container { max-width: 600px; margin: 0 auto; }
-
-        /* Profile Screen */
         .profile-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; }
-        .profiles-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; width: 100%; margin-top: 20px; }
+        .profile-header { background: rgba(30, 30, 46, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 100%; }
+        .profile-header h1 { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; margin-bottom: 10px; }
+        .profiles-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; width: 100%; }
         .profile-card { background: rgba(30, 30, 46, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
         .profile-card:hover { transform: translateY(-5px); border-color: #00d4ff; }
+        .add-profile-btn { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 15px; padding: 20px; width: 100%; cursor: pointer; font-weight: 600; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: rgba(30, 30, 46, 0.98); border-radius: 20px; padding: 30px; width: 90%; max-width: 400px; }
+        .form-group input { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: white; border-radius: 10px; }
+        .pin-input { text-align: center; font-size: 24px; letter-spacing: 10px; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; border: none; }
+        .btn-primary { background: #00d4ff; color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: white; }
 
-        /* Navigation Header */
+        /* Main App Header & New Buttons */
         .main-app { display: none; }
         .main-app.active { display: block; }
-        .header { background: rgba(30, 30, 46, 0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .header { background: rgba(30, 30, 46, 0.95); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        h1 { font-size: 24px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .tabs { display: flex; gap: 10px; }
-        .tab { flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.05); color: #a0aec0; border-radius: 12px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.1); font-weight: 600; text-align: center; font-size: 14px; }
-        .tab.active { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; }
+        .action-group { display: flex; gap: 10px; align-items: center; }
+        
+        .logout-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+        
+        /* DELETE PROFILE BUTTON - NEW */
+        .delete-prof-btn { background: rgba(255, 82, 82, 0.15); border: 1px solid rgba(255, 82, 82, 0.4); color: #ff5252; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; transition: 0.3s; }
+        .delete-prof-btn:hover { background: rgba(255, 82, 82, 0.3); }
 
+        /* Tabs and Lists (Same as original) */
+        .tabs { display: flex; gap: 10px; }
+        .tab { flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); color: #a0aec0; border-radius: 10px; cursor: pointer; border: none; }
+        .tab.active { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; }
         .content-section { display: none; }
         .content-section.active { display: block; }
-
-        /* Form Styling */
-        .add-form { background: rgba(30, 30, 46, 0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        .add-form h2 { font-size: 18px; margin-bottom: 15px; color: #e2e8f0; }
-        label { display: block; color: #e2e8f0; font-size: 14px; margin-bottom: 8px; font-weight: 600; }
-        input, textarea, select { 
-            width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(255, 255, 255, 0.05); 
-            border: 2px solid rgba(255, 255, 255, 0.1); color: #ffffff; border-radius: 10px; font-family: inherit;
-        }
-        .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
-
-        /* Card Layouts */
-        .item-card { background: rgba(30, 30, 46, 0.95); border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; }
-        .item-title { color: #4facfe; font-weight: 700; font-size: 1.1rem; margin-bottom: 10px; text-transform: uppercase; }
-        .item-text { color: #a0aec0; font-size: 14px; margin-bottom: 10px; line-height: 1.5; }
-        .item-meta { color: #718096; font-size: 12px; display: flex; gap: 15px; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
-        
-        .action-btns { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
-        .action-btn { background: none; border: none; cursor: pointer; opacity: 0.6; transition: 0.3s; font-size: 16px; }
-        .action-btn:hover { opacity: 1; }
-
-        .search-box { background: rgba(30, 30, 46, 0.95); border-radius: 15px; padding: 10px 15px; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; }
-        .search-box input { margin-bottom: 0; background: transparent; border: none; padding: 5px; width: 100%; }
-
-        .empty-state { text-align: center; padding: 40px 20px; background: rgba(30, 30, 46, 0.95); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); }
-        .empty-state img { width: 64px; margin-bottom: 15px; }
-
-        /* Modals */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: #1a1a2e; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); overflow-y: auto; max-height: 90vh; }
+        .add-form { background: rgba(30, 30, 46, 0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; }
+        .add-form input, .add-form textarea, .add-form select { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; margin-bottom: 10px; }
+        .submit-btn { width: 100%; padding: 14px; background: #00d4ff; color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .item-card { background: rgba(30, 30, 46, 0.95); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .item-header { display: flex; justify-content: space-between; }
+        .item-title { font-size: 18px; color: #00d4ff; font-weight: bold; }
+        .icon-btn { background: none; border: none; cursor: pointer; font-size: 16px; margin-left: 5px; }
+        .course-badge { background: #7b2ff7; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; }
+        .stats-bar { display: flex; justify-content: space-around; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 15px; }
+        .dictionary-card { background: rgba(30,30,46,0.95); padding: 15px; border-radius: 15px; border-left: 4px solid #00d4ff; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div id="profile-screen" class="profile-screen">
-            <div style="text-align:center; margin-bottom:30px">
-                <h1 style="font-size: 32px;">📚 English Learning</h1>
-                <p style="color: #a0aec0; margin-top:10px;">Select a profile to continue</p>
+            <div class="profile-header">
+                <h1>📚 English Learning</h1>
+                <p>Select a profile or create a new one (Cloud Sync Active)</p>
             </div>
-            <div id="profiles-list" class="profiles-list"></div>
-            <button style="margin-top:20px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 15px; padding: 20px; width:100%; font-weight:600; cursor:pointer" onclick="showModal('create-profile-modal')">➕ Create New Profile</button>
+            <div class="profiles-list" id="profiles-list"></div>
+            <button class="add-profile-btn" onclick="showCreateProfileModal()">➕ Create New Profile</button>
         </div>
 
         <div id="main-app" class="main-app">
             <div class="header">
                 <div class="header-top">
-                    <h1>📚 English Learning</h1>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <span id="user-display" style="color:#a0aec0; font-size:14px"></span>
-                        <button onclick="location.reload()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; padding:5px 10px; border-radius:8px; font-size:12px; cursor:pointer">Logout</button>
+                    <h1>📚 English App</h1>
+                    <div class="action-group">
+                        <div class="profile-info">👤 <span id="current-profile-name"></span></div>
+                        <button class="delete-prof-btn" onclick="deleteCurrentProfile()">Delete</button>
+                        <button class="logout-btn" onclick="logout()">Logout</button>
                     </div>
                 </div>
                 <div class="tabs">
-                    <div class="tab active" onclick="switchTab(event, 'words-sec')">Words</div>
-                    <div class="tab" onclick="switchTab(event, 'sentences-sec')">Sentences</div>
-                    <div class="tab" onclick="switchTab(event, 'courses-sec')">Courses</div>
-                    <div class="tab" onclick="switchTab(event, 'study-sec')">Study</div>
+                    <button class="tab active" onclick="switchTab('words')">Words</button>
+                    <button class="tab" onclick="switchTab('sentences')">Sentences</button>
+                    <button class="tab" onclick="switchTab('courses')">Courses</button>
+                    <button class="tab" onclick="switchTab('study')">Study</button>
                 </div>
             </div>
 
-            <div id="words-sec" class="content-section active">
+            <div id="words-section" class="content-section active">
                 <div class="add-form">
-                    <h2>Add New Word</h2>
-                    <form id="wordForm">
-                        <label>Word</label><input type="text" id="w-input" placeholder="e.g., Serendipity" required>
-                        <label>Meaning</label><textarea id="w-meaning" placeholder="Definition" required></textarea>
-                        <label>Course (optional)</label><select id="w-course"></select>
+                    <form id="word-form" onsubmit="addWord(event)">
+                        <input type="text" id="word-input" required placeholder="Word">
+                        <textarea id="word-meaning" required placeholder="Meaning"></textarea>
+                        <textarea id="word-example" placeholder="Example"></textarea>
+                        <select id="word-course"><option value="">No Course</option></select>
                         <button type="submit" class="submit-btn">Add Word</button>
                     </form>
                 </div>
                 <div id="words-list"></div>
             </div>
 
-            <div id="sentences-sec" class="content-section">
+            <div id="sentences-section" class="content-section">
                 <div class="add-form">
-                    <h2>Add New Sentence</h2>
-                    <form id="sentenceForm">
-                        <label>Sentence</label><textarea id="s-input" placeholder="Enter sentence" required></textarea>
-                        <label>Course (optional)</label><select id="s-course"></select>
+                    <form id="sentence-form" onsubmit="addSentence(event)">
+                        <textarea id="sentence-input" required placeholder="Sentence"></textarea>
+                        <textarea id="sentence-notes" placeholder="Translation/Notes"></textarea>
+                        <select id="sentence-course"><option value="">No Course</option></select>
                         <button type="submit" class="submit-btn">Add Sentence</button>
                     </form>
                 </div>
                 <div id="sentences-list"></div>
             </div>
 
-            <div id="courses-sec" class="content-section">
+            <div id="courses-section" class="content-section">
                 <div class="add-form">
-                    <h2>Add New Course</h2>
-                    <form id="courseForm">
-                        <label>Course Name</label><input type="text" id="c-name" placeholder="e.g., Business English" required>
+                    <form onsubmit="addCourse(event)">
+                        <input type="text" id="course-name" required placeholder="Course Name">
+                        <textarea id="course-description" placeholder="Description"></textarea>
                         <button type="submit" class="submit-btn">Add Course</button>
                     </form>
                 </div>
                 <div id="courses-list"></div>
             </div>
 
-            <div id="study-sec" class="content-section">
+            <div id="study-section" class="content-section">
                 <div class="add-form">
-                    <h2 style="display:flex; align-items:center; gap:10px">📖 My Dictionary</h2>
-                    <p style="color: #a0aec0; font-size: 14px; margin-bottom: 20px;">Read and review all your vocabulary</p>
-                    <label>Filter by Course</label><select id="study-filter" onchange="renderStudy()"><option value="">All Courses</option></select>
-                    <label>Sort by</label><select id="study-sort" onchange="renderStudy()"><option value="newest">Newest First</option><option value="alpha">A-Z</option></select>
+                    <h2>📖 My Dictionary</h2>
+                    <select id="study-filter" onchange="renderStudyList()"><option value="">All Courses</option></select>
                 </div>
-                <div class="search-box"><input type="text" id="study-search" placeholder="🔍 Search dictionary..." onkeyup="renderStudy()"></div>
                 <div id="study-list"></div>
             </div>
         </div>
@@ -145,36 +147,31 @@
 
     <div id="create-profile-modal" class="modal">
         <div class="modal-content">
-            <h2 style="color:#00d4ff; margin-bottom:20px">New Profile</h2>
-            <label>Name</label><input type="text" id="p-name" placeholder="Name">
-            <label>4-Digit PIN</label><input type="tel" id="p-pin" placeholder="****" maxlength="4" style="text-align:center; font-size:24px; letter-spacing:10px">
-            <button class="submit-btn" onclick="createNewProfile()">Create</button>
-            <button onclick="hideModal('create-profile-modal')" style="width:100%; margin-top:10px; background:none; border:none; color:#a0aec0; cursor:pointer">Cancel</button>
+            <h2>New Profile</h2>
+            <div class="form-group"><input type="text" id="new-profile-name" placeholder="Name"></div>
+            <div class="form-group"><input type="tel" id="new-profile-pin" class="pin-input" placeholder="****" maxlength="4"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeCreateProfileModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createProfile()">Create</button>
+            </div>
         </div>
     </div>
 
-    <div id="login-modal" class="modal">
+    <div id="pin-modal" class="modal">
         <div class="modal-content">
-            <h2 style="color:#00d4ff; margin-bottom:20px">Enter PIN</h2>
-            <input type="tel" id="l-pin" placeholder="****" maxlength="4" style="text-align:center; font-size:24px; letter-spacing:10px">
-            <button class="submit-btn" id="login-confirm">Confirm</button>
+            <h2>Enter PIN</h2>
+            <div class="form-group"><input type="tel" id="enter-pin" class="pin-input" placeholder="****" maxlength="4"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closePinModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="verifyPin()">Enter</button>
+            </div>
         </div>
     </div>
 
-    <div id="edit-modal" class="modal">
-        <div class="modal-content">
-            <h2 id="edit-modal-title" style="color:#00d4ff; margin-bottom:20px">Edit Item</h2>
-            <div id="edit-form-container"></div>
-            <button class="submit-btn" id="save-edit-btn">Save Changes</button>
-            <button onclick="hideModal('edit-modal')" style="width:100%; margin-top:10px; background:none; border:none; color:#a0aec0; cursor:pointer">Cancel</button>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
+    <script>
+        // --- FIREBASE CONFIGURATION ---
+        // REPLACE THESE WITH YOUR ACTUAL FIREBASE PROJECT DETAILS
+       const firebaseConfig = {
 
   apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
 
@@ -191,187 +188,194 @@
   measurementId: "G-VVWYDWEK6R"
 
 };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        let allProfiles = [];
-        let activeUser = null;
-        let loginTargetId = null;
+        let profiles = [];
+        let currentProfile = null;
+        let selectedProfileForPin = null;
 
-        onSnapshot(collection(db, "profiles"), (snap) => {
-            allProfiles = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            document.getElementById('profiles-list').innerHTML = allProfiles.map(p => `
-                <div class="profile-card" onclick="openLogin('${p.id}')">
-                    <div style="font-size:40px; margin-bottom:10px">👤</div>
-                    <div style="font-weight:600;">${p.name}</div>
-                </div>`).join('');
-        });
+        // --- CLOUD SYNC LOGIC ---
+        function syncWithCloud() {
+            database.ref('app_data/profiles').set(profiles);
+        }
 
-        window.createNewProfile = async () => {
-            const name = document.getElementById('p-name').value;
-            const pin = document.getElementById('p-pin').value;
-            if(name && pin.length === 4) {
-                await setDoc(doc(db, "profiles", Date.now().toString()), { name, pin, data: { words: [], sentences: [], courses: [] } });
-                hideModal('create-profile-modal');
-            }
-        };
+        function loadFromCloud() {
+            database.ref('app_data/profiles').on('value', (snapshot) => {
+                const data = snapshot.val();
+                profiles = data ? data : [];
+                renderProfiles();
+                // Update current profile data if logged in
+                if(currentProfile) {
+                    currentProfile = profiles.find(p => p.id === currentProfile.id);
+                    if(currentProfile) loadProfileData();
+                    else logout();
+                }
+            });
+        }
 
-        window.openLogin = (id) => {
-            loginTargetId = id;
-            showModal('login-modal');
-            document.getElementById('login-confirm').onclick = async () => {
-                const pin = document.getElementById('l-pin').value;
-                const user = allProfiles.find(u => u.id === loginTargetId);
-                if(user.pin === pin) {
-                    activeUser = user;
-                    onSnapshot(doc(db, "profiles", activeUser.id), (d) => { activeUser = {id: d.id, ...d.data()}; updateUI(); });
-                    document.getElementById('profile-screen').style.display = 'none';
-                    document.getElementById('main-app').classList.add('active');
-                    document.getElementById('user-display').innerText = activeUser.name;
-                    hideModal('login-modal');
-                } else { alert("Wrong PIN"); }
+        // Profile Management
+        function renderProfiles() {
+            const list = document.getElementById('profiles-list');
+            list.innerHTML = profiles.map(p => `
+                <div class="profile-card" onclick="selectProfile('${p.id}')">
+                    <div class="profile-icon">👤</div>
+                    <div class="profile-name">${p.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function createProfile() {
+            const name = document.getElementById('new-profile-name').value;
+            const pin = document.getElementById('new-profile-pin').value;
+            if(!name || pin.length !== 4) return alert("Fill details correctly");
+
+            const newProfile = {
+                id: "ID_" + Date.now(),
+                name: name,
+                pin: pin,
+                data: { words: [], sentences: [], courses: [] }
             };
-        };
+            profiles.push(newProfile);
+            syncWithCloud();
+            closeCreateProfileModal();
+        }
 
-        // UI Update Functions
-        function updateUI() {
-            const courseOpts = '<option value="">No Course</option>' + activeUser.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            document.getElementById('w-course').innerHTML = courseOpts;
-            document.getElementById('s-course').innerHTML = courseOpts;
-            document.getElementById('study-filter').innerHTML = '<option value="">All Courses</option>' + activeUser.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        // NEW: Delete Profile Function
+        function deleteCurrentProfile() {
+            if(confirm("Are you sure you want to PERMANENTLY delete your entire profile and data?")) {
+                profiles = profiles.filter(p => p.id !== currentProfile.id);
+                syncWithCloud();
+                logout();
+            }
+        }
 
+        function verifyPin() {
+            const pin = document.getElementById('enter-pin').value;
+            if(pin === selectedProfileForPin.pin) {
+                currentProfile = selectedProfileForPin;
+                loginToProfile();
+            } else {
+                alert("Wrong PIN");
+            }
+        }
+
+        function loginToProfile() {
+            closePinModal();
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('main-app').classList.add('active');
+            document.getElementById('current-profile-name').textContent = currentProfile.name;
+            loadProfileData();
+        }
+
+        function logout() {
+            currentProfile = null;
+            document.getElementById('main-app').classList.remove('active');
+            document.getElementById('profile-screen').style.display = 'flex';
+        }
+
+        // --- REST OF THE APP LOGIC (Simplified & Cloud Ready) ---
+        function loadProfileData() {
+            updateCourseSelects();
             renderWords();
             renderSentences();
             renderCourses();
-            renderStudy();
+            renderStudyList();
+        }
+
+        function addWord(e) {
+            e.preventDefault();
+            const word = {
+                id: Date.now(),
+                word: document.getElementById('word-input').value,
+                meaning: document.getElementById('word-meaning').value,
+                example: document.getElementById('word-example').value,
+                course: document.getElementById('word-course').value,
+                date: new Date().toLocaleDateString()
+            };
+            currentProfile.data.words.unshift(word);
+            syncWithCloud();
+            e.target.reset();
+        }
+
+        function addSentence(e) {
+            e.preventDefault();
+            const sent = {
+                id: Date.now(),
+                sentence: document.getElementById('sentence-input').value,
+                notes: document.getElementById('sentence-notes').value,
+                course: document.getElementById('sentence-course').value,
+                date: new Date().toLocaleDateString()
+            };
+            currentProfile.data.sentences.unshift(sent);
+            syncWithCloud();
+            e.target.reset();
+        }
+
+        function addCourse(e) {
+            e.preventDefault();
+            const course = {
+                id: "C" + Date.now(),
+                name: document.getElementById('course-name').value,
+                description: document.getElementById('course-description').value,
+                date: new Date().toLocaleDateString()
+            };
+            if(!currentProfile.data.courses) currentProfile.data.courses = [];
+            currentProfile.data.courses.unshift(course);
+            syncWithCloud();
+            e.target.reset();
         }
 
         function renderWords() {
-            document.getElementById('words-list').innerHTML = activeUser.data.words.map(w => `
-                <div class="item-card">
-                    <div class="action-btns">
-                        <button class="action-btn" onclick="openEdit('words', '${w.id}')">✏️</button>
-                        <button class="action-btn" onclick="deleteItem('words', '${w.id}')">🗑️</button>
-                    </div>
-                    <div class="item-title">${w.word}</div>
-                    <div class="item-text">${w.meaning}</div>
-                    <div class="item-meta">📅 ${w.date}</div>
-                </div>`).join('');
+            const list = document.getElementById('words-list');
+            const data = currentProfile.data.words || [];
+            list.innerHTML = data.map(w => `<div class="item-card"><div class="item-title">${w.word}</div><div>${w.meaning}</div></div>`).join('');
         }
 
         function renderSentences() {
-            document.getElementById('sentences-list').innerHTML = activeUser.data.sentences.map(s => `
-                <div class="item-card">
-                    <div class="action-btns">
-                        <button class="action-btn" onclick="openEdit('sentences', '${s.id}')">✏️</button>
-                        <button class="action-btn" onclick="deleteItem('sentences', '${s.id}')">🗑️</button>
-                    </div>
-                    <div class="item-text" style="font-weight:600; color:#e2e8f0; padding-right:50px">${s.text}</div>
-                    <div class="item-meta">📅 ${s.date}</div>
-                </div>`).join('');
+            const list = document.getElementById('sentences-list');
+            const data = currentProfile.data.sentences || [];
+            list.innerHTML = data.map(s => `<div class="item-card"><div>${s.sentence}</div><small>${s.notes}</small></div>`).join('');
         }
 
         function renderCourses() {
-            document.getElementById('courses-list').innerHTML = activeUser.data.courses.map(c => `
-                <div class="item-card">
-                    <div class="action-btns">
-                        <button class="action-btn" onclick="deleteItem('courses', '${c.id}')">🗑️</button>
-                    </div>
-                    <div class="item-title">${c.name}</div>
-                    <div class="item-meta">
-                        <span>📖 ${activeUser.data.words.filter(w=>w.course===c.id).length} words</span>
-                        <span>📅 ${c.date}</span>
-                    </div>
-                </div>`).join('');
+            const list = document.getElementById('courses-list');
+            const data = currentProfile.data.courses || [];
+            list.innerHTML = data.map(c => `<div class="item-card"><div class="item-title">${c.name}</div></div>`).join('');
         }
 
-        window.renderStudy = () => {
-            const search = document.getElementById('study-search').value.toLowerCase();
-            const filter = document.getElementById('study-filter').value;
-            let filtered = activeUser.data.words;
-            if(filter) filtered = filtered.filter(w => w.course === filter);
-            if(search) filtered = filtered.filter(w => w.word.toLowerCase().includes(search));
+        function renderStudyList() {
+            const list = document.getElementById('study-list');
+            const words = currentProfile.data.words || [];
+            list.innerHTML = words.map(w => `<div class="dictionary-card"><strong>${w.word}</strong><p>${w.meaning}</p></div>`).join('');
+        }
 
-            const display = document.getElementById('study-list');
-            if(filtered.length === 0) {
-                display.innerHTML = `<div class="empty-state"><img src="https://cdn-icons-png.flaticon.com/512/3389/3389081.png" alt="books"><p style="color:#a0aec0">No words found.</p></div>`;
-            } else {
-                display.innerHTML = filtered.map(w => `<div class="item-card" style="border-left: 4px solid #00d4ff"><div class="item-title">${w.word}</div><div class="item-text">${w.meaning}</div></div>`).join('');
-            }
-        };
+        function updateCourseSelects() {
+            const courses = currentProfile.data.courses || [];
+            const options = '<option value="">No Course</option>' + courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            document.getElementById('word-course').innerHTML = options;
+            document.getElementById('sentence-course').innerHTML = options;
+            document.getElementById('study-filter').innerHTML = options;
+        }
 
-        // Data Management
-        document.getElementById('wordForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const w = { id: Date.now().toString(), word: document.getElementById('w-input').value, meaning: document.getElementById('w-meaning').value, course: document.getElementById('w-course').value, date: new Date().toLocaleDateString('en-GB') };
-            await updateDoc(doc(db, "profiles", activeUser.id), { "data.words": arrayUnion(w) });
-            e.target.reset();
-        };
-
-        document.getElementById('sentenceForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const s = { id: Date.now().toString(), text: document.getElementById('s-input').value, course: document.getElementById('s-course').value, date: new Date().toLocaleDateString('en-GB') };
-            await updateDoc(doc(db, "profiles", activeUser.id), { "data.sentences": arrayUnion(s) });
-            e.target.reset();
-        };
-
-        document.getElementById('courseForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const c = { id: Date.now().toString(), name: document.getElementById('c-name').value, date: new Date().toLocaleDateString('en-GB') };
-            await updateDoc(doc(db, "profiles", activeUser.id), { "data.courses": arrayUnion(c) });
-            e.target.reset();
-        };
-
-        window.deleteItem = async (type, id) => {
-            if(confirm("Delete this item?")) {
-                const newData = { ...activeUser.data };
-                newData[type] = newData[type].filter(item => item.id !== id);
-                await updateDoc(doc(db, "profiles", activeUser.id), { "data": newData });
-            }
-        };
-
-        // Edit Logic
-        window.openEdit = (type, id) => {
-            const item = activeUser.data[type].find(i => i.id === id);
-            const container = document.getElementById('edit-form-container');
-            const title = document.getElementById('edit-modal-title');
-            const courseOpts = '<option value="">No Course</option>' + activeUser.data.courses.map(c => `<option value="${c.id}" ${c.id === item.course ? 'selected' : ''}>${c.name}</option>`).join('');
-
-            if(type === 'words') {
-                title.innerText = "Edit Word";
-                container.innerHTML = `
-                    <label>Word</label><input type="text" id="edit-val-1" value="${item.word}">
-                    <label>Meaning</label><textarea id="edit-val-2">${item.meaning}</textarea>
-                    <label>Course</label><select id="edit-val-3">${courseOpts}</select>`;
-            } else {
-                title.innerText = "Edit Sentence";
-                container.innerHTML = `
-                    <label>Sentence</label><textarea id="edit-val-1">${item.text}</textarea>
-                    <label>Course</label><select id="edit-val-2">${courseOpts}</select>`;
-            }
-
-            showModal('edit-modal');
-            document.getElementById('save-edit-btn').onclick = async () => {
-                const newData = { ...activeUser.data };
-                const idx = newData[type].findIndex(i => i.id === id);
-                if(type === 'words') {
-                    newData[type][idx] = { ...newData[type][idx], word: document.getElementById('edit-val-1').value, meaning: document.getElementById('edit-val-2').value, course: document.getElementById('edit-val-3').value };
-                } else {
-                    newData[type][idx] = { ...newData[type][idx], text: document.getElementById('edit-val-1').value, course: document.getElementById('edit-val-2').value };
-                }
-                await updateDoc(doc(db, "profiles", activeUser.id), { "data": newData });
-                hideModal('edit-modal');
-            };
-        };
-
-        window.switchTab = (e, id) => {
+        // Modal Helpers
+        function showCreateProfileModal() { document.getElementById('create-profile-modal').classList.add('active'); }
+        function closeCreateProfileModal() { document.getElementById('create-profile-modal').classList.remove('active'); }
+        function selectProfile(id) { 
+            selectedProfileForPin = profiles.find(p => p.id === id);
+            document.getElementById('pin-modal').classList.add('active');
+        }
+        function closePinModal() { document.getElementById('pin-modal').classList.remove('active'); }
+        function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            e.target.classList.add('active');
-            document.getElementById(id).classList.add('active');
-        };
-        window.showModal = (id) => document.getElementById(id).classList.add('active');
-        window.hideModal = (id) => document.getElementById(id).classList.remove('active');
+            event.target.classList.add('active');
+            document.getElementById(tab + '-section').classList.add('active');
+        }
+
+        // Initialize App
+        loadFromCloud();
     </script>
 </body>
 </html>

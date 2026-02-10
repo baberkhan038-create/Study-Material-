@@ -3,56 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Learning App - Cloud Sync</title>
+    <title>English Learning - Cloud Sync</title>
     <style>
-        /* ... [CSS remains identical to your original code to preserve design] ... */
+        /* CSS stays exactly the same as your original design */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; padding: 20px; padding-bottom: 80px; animation: gradientShift 15s ease infinite; background-size: 200% 200%; }
         @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .container { max-width: 600px; margin: 0 auto; }
         .profile-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; }
-        .profile-header { background: rgba(30, 30, 46, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideDown 0.6s ease-out; text-align: center; width: 100%; }
-        .profile-header h1 { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 32px; margin-bottom: 10px; }
-        .profile-header p { color: #a0aec0; font-size: 14px; }
+        .profile-header { background: rgba(30, 30, 46, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 100%; }
+        .profile-header h1 { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; }
         .profiles-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; width: 100%; }
-        .profile-card { background: rgba(30, 30, 46, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; animation: fadeInUp 0.5s ease-out; }
-        .profile-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3); border-color: rgba(0, 212, 255, 0.5); }
-        .profile-icon { font-size: 48px; margin-bottom: 10px; }
-        .profile-name { color: #e2e8f0; font-weight: 600; font-size: 16px; word-break: break-word; }
-        .add-profile-btn { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 15px; padding: 20px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5); width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 1000; }
-        .modal.active { display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: rgba(30, 30, 46, 0.98); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; max-width: 400px; width: 90%; }
-        .modal-content h2 { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
+        .profile-card { background: rgba(30, 30, 46, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; }
+        .profile-card:hover { transform: translateY(-5px); border-color: #00d4ff; }
+        .delete-profile-btn { position: absolute; top: 5px; right: 5px; background: rgba(255, 82, 82, 0.2); border: none; color: #ff5252; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 12px; }
+        .add-profile-btn { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 15px; padding: 20px; width: 100%; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: rgba(30, 30, 46, 0.98); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; width: 90%; max-width: 400px; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; color: #e2e8f0; margin-bottom: 8px; font-size: 14px; }
-        .form-group input { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; border-radius: 10px; }
+        .form-group input, .add-form input, .add-form textarea, .add-form select { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; border-radius: 10px; }
         .pin-input { text-align: center; font-size: 24px; letter-spacing: 10px; }
-        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
-        .btn-primary { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; }
-        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; }
         .main-app { display: none; }
         .main-app.active { display: block; }
         .header { background: rgba(30, 30, 46, 0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .tabs { display: flex; gap: 10px; }
-        .tab { flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); color: #a0aec0; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .tabs { display: flex; gap: 10px; margin-top: 15px; }
+        .tab { flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); color: #a0aec0; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.1); font-weight: 600; }
         .tab.active { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; }
         .content-section { display: none; }
         .content-section.active { display: block; }
-        .add-form { background: rgba(30, 30, 46, 0.95); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-        .add-form input, .add-form textarea, .add-form select { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: white; border-radius: 10px; margin-bottom: 15px; }
+        .add-form { background: rgba(30, 30, 46, 0.95); padding: 20px; border-radius: 20px; margin-bottom: 20px; }
         .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
-        .items-list { display: flex; flex-direction: column; gap: 15px; }
-        .item-card { background: rgba(30, 30, 46, 0.95); border-radius: 15px; padding: 15px; border: 1px solid rgba(255, 255, 255, 0.1); }
-        .item-header { display: flex; justify-content: space-between; }
-        .item-title { font-size: 18px; font-weight: 700; color: #e2e8f0; }
-        .icon-btn { background: rgba(255, 255, 255, 0.05); border: none; cursor: pointer; padding: 8px; border-radius: 8px; }
-        .course-badge { display: inline-block; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-top: 8px; }
+        .item-card, .dictionary-card { background: rgba(30, 30, 46, 0.95); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .dictionary-card { border-left: 4px solid #00d4ff; }
+        .dictionary-word { font-size: 24px; font-weight: 700; color: #00d4ff; margin-bottom: 10px; }
+        .dictionary-example { background: rgba(0, 212, 255, 0.1); padding: 10px; border-radius: 8px; font-style: italic; color: #a0aec0; margin-top: 10px; }
         .stats-bar { background: rgba(30, 30, 46, 0.95); border-radius: 15px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-around; text-align: center; }
-        .dictionary-card { background: rgba(30, 30, 46, 0.95); border-radius: 15px; padding: 20px; margin-bottom: 15px; border-left: 4px solid #00d4ff; }
-        .dictionary-word { font-size: 24px; font-weight: 700; color: #00d4ff; }
+        .stats-number { font-size: 24px; font-weight: 700; color: #00d4ff; }
+        .stats-label { font-size: 12px; color: #718096; }
+        .course-badge { background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); color: white; padding: 4px 10px; border-radius: 20px; font-size: 11px; display: inline-block; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -60,10 +51,10 @@
         <div id="profile-screen" class="profile-screen">
             <div class="profile-header">
                 <h1>📚 English Cloud</h1>
-                <p>Select a profile to sync your progress</p>
+                <p>Profiles are synced to your database</p>
             </div>
             <div class="profiles-list" id="profiles-list"></div>
-            <button class="add-profile-btn" onclick="showCreateProfileModal()">
+            <button class="add-profile-btn" onclick="showModal('create-profile-modal')">
                 <span>➕</span><span>Create New Profile</span>
             </button>
         </div>
@@ -71,10 +62,10 @@
         <div id="main-app" class="main-app">
             <div class="header">
                 <div class="header-top">
-                    <h1>📚 English Learning</h1>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span id="current-profile-name" style="color: #a0aec0;"></span>
-                        <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="logout()">Logout</button>
+                    <h1>📚 Learn English</h1>
+                    <div style="display: flex; gap: 10px;">
+                        <span id="current-profile-display" style="color:#a0aec0; align-self:center;"></span>
+                        <button class="btn" style="background:rgba(255,82,82,0.2); color:#ff5252; border:none; padding:5px 10px; border-radius:8px;" onclick="logout()">Logout</button>
                     </div>
                 </div>
                 <div class="tabs">
@@ -87,39 +78,51 @@
 
             <div id="words-section" class="content-section active">
                 <div class="add-form">
-                    <form id="word-form" onsubmit="addWord(event)">
-                        <input type="text" id="word-input" required placeholder="New Word">
-                        <textarea id="word-meaning" required placeholder="Meaning"></textarea>
-                        <textarea id="word-example" placeholder="Example"></textarea>
-                        <select id="word-course"><option value="">No Course</option></select>
+                    <form onsubmit="addWord(event)">
+                        <input type="text" id="word-input" required placeholder="Word">
+                        <textarea id="word-meaning" required placeholder="Meaning" style="margin: 10px 0;"></textarea>
+                        <textarea id="word-example" placeholder="Example" style="margin-bottom: 10px;"></textarea>
+                        <select id="word-course" style="margin-bottom: 10px;"><option value="">No Course</option></select>
                         <button type="submit" class="submit-btn">Add Word</button>
                     </form>
                 </div>
-                <div id="words-list" class="items-list"></div>
+                <div id="words-list"></div>
             </div>
+
             <div id="sentences-section" class="content-section">
                 <div class="add-form">
                     <form onsubmit="addSentence(event)">
                         <textarea id="sentence-input" required placeholder="Sentence"></textarea>
-                        <textarea id="sentence-notes" placeholder="Notes"></textarea>
-                        <select id="sentence-course"><option value="">No Course</option></select>
+                        <textarea id="sentence-notes" placeholder="Notes" style="margin: 10px 0;"></textarea>
+                        <select id="sentence-course" style="margin-bottom: 10px;"><option value="">No Course</option></select>
                         <button type="submit" class="submit-btn">Add Sentence</button>
                     </form>
                 </div>
-                <div id="sentences-list" class="items-list"></div>
+                <div id="sentences-list"></div>
             </div>
+
             <div id="courses-section" class="content-section">
                 <div class="add-form">
                     <form onsubmit="addCourse(event)">
                         <input type="text" id="course-name" required placeholder="Course Name">
-                        <textarea id="course-description" placeholder="Description"></textarea>
+                        <textarea id="course-description" placeholder="Description" style="margin: 10px 0;"></textarea>
                         <button type="submit" class="submit-btn">Add Course</button>
                     </form>
                 </div>
-                <div id="courses-list" class="items-list"></div>
+                <div id="courses-list"></div>
             </div>
+
             <div id="study-section" class="content-section">
-                <div id="study-list" class="items-list"></div>
+                <div class="add-form">
+                    <label style="color:white; font-size:12px;">Filter by Course</label>
+                    <select id="study-filter" onchange="renderStudyList()" style="margin-bottom: 10px;"><option value="">All Courses</option></select>
+                    <label style="color:white; font-size:12px;">Sort</label>
+                    <select id="study-sort" onchange="renderStudyList()">
+                        <option value="newest">Newest First</option>
+                        <option value="alphabetical">A-Z</option>
+                    </select>
+                </div>
+                <div id="study-list"></div>
             </div>
         </div>
     </div>
@@ -127,31 +130,27 @@
     <div id="create-profile-modal" class="modal">
         <div class="modal-content">
             <h2>New Profile</h2>
-            <div class="form-group"><input type="text" id="new-profile-name" placeholder="Name"></div>
-            <div class="form-group"><input type="tel" id="new-profile-pin" class="pin-input" placeholder="****" maxlength="4"></div>
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="closeCreateProfileModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="createProfile()">Create</button>
-            </div>
+            <div class="form-group"><input type="text" id="new-name" placeholder="Name"></div>
+            <div class="form-group"><input type="tel" id="new-pin" class="pin-input" placeholder="****" maxlength="4"></div>
+            <button class="submit-btn" onclick="createProfile()">Create</button>
+            <button class="tab" style="width:100%; margin-top:10px;" onclick="hideModal('create-profile-modal')">Cancel</button>
         </div>
     </div>
 
     <div id="pin-modal" class="modal">
         <div class="modal-content">
-            <h2>Enter PIN</h2>
-            <div class="form-group"><input type="tel" id="enter-pin" class="pin-input" placeholder="****" maxlength="4"></div>
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="closePinModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="verifyPin()">Enter</button>
-            </div>
+            <h2 id="pin-title">Enter PIN</h2>
+            <div class="form-group"><input type="tel" id="entry-pin" class="pin-input" placeholder="****" maxlength="4"></div>
+            <button class="submit-btn" id="pin-confirm-btn">Confirm</button>
+            <button class="tab" style="width:100%; margin-top:10px;" onclick="hideModal('pin-modal')">Cancel</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ⚠️ REPLACE THIS WITH YOUR FIREBASE CONFIG
+        // 🔥 REPLACE WITH YOUR FIREBASE CONFIG
         const firebaseConfig = {
 
   apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
@@ -169,51 +168,79 @@
   measurementId: "G-VVWYDWEK6R"
 
 };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // App State
         let profiles = [];
         let currentProfile = null;
-        let selectedProfileForPin = null;
+        let selectedProfileId = null;
+        let pinAction = ''; // 'login' or 'delete'
 
-        // 1. Sync Profiles from Cloud
+        // 1. Listen for Profiles
         onSnapshot(collection(db, "profiles"), (snapshot) => {
-            profiles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            profiles = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             renderProfiles();
         });
 
+        // Profile Management
         window.createProfile = async () => {
-            const name = document.getElementById('new-profile-name').value;
-            const pin = document.getElementById('new-profile-pin').value;
-            const id = Date.now().toString();
-
+            const name = document.getElementById('new-name').value;
+            const pin = document.getElementById('new-pin').value;
             if(name && pin.length === 4) {
-                await setDoc(doc(db, "profiles", id), {
-                    name, pin,
-                    data: { words: [], sentences: [], courses: [] }
+                await setDoc(doc(db, "profiles", Date.now().toString()), {
+                    name, pin, data: { words: [], sentences: [], courses: [] }
                 });
-                closeCreateProfileModal();
+                hideModal('create-profile-modal');
             }
         };
 
-        window.verifyPin = () => {
-            const enteredPin = document.getElementById('enter-pin').value;
-            if (enteredPin === selectedProfileForPin.pin) {
-                currentProfile = selectedProfileForPin;
-                // Start Real-time listener for THIS specific profile data
-                onSnapshot(doc(db, "profiles", currentProfile.id), (doc) => {
-                    currentProfile = { id: doc.id, ...doc.data() };
-                    loadProfileData();
-                });
-                loginToProfile();
+        window.renderProfiles = () => {
+            const list = document.getElementById('profiles-list');
+            list.innerHTML = profiles.map(p => `
+                <div class="profile-card">
+                    <button class="delete-profile-btn" onclick="requestPin('${p.id}', 'delete')">✕</button>
+                    <div onclick="requestPin('${p.id}', 'login')">
+                        <div style="font-size:40px;">👤</div>
+                        <div style="color:white; font-weight:600;">${p.name}</div>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        window.requestPin = (id, action) => {
+            selectedProfileId = id;
+            pinAction = action;
+            document.getElementById('entry-pin').value = '';
+            document.getElementById('pin-title').innerText = action === 'delete' ? 'Confirm PIN to Delete' : 'Enter PIN';
+            showModal('pin-modal');
+        };
+
+        document.getElementById('pin-confirm-btn').onclick = async () => {
+            const entered = document.getElementById('entry-pin').value;
+            const profile = profiles.find(p => p.id === selectedProfileId);
+            
+            if(entered === profile.pin) {
+                if(pinAction === 'delete') {
+                    await deleteDoc(doc(db, "profiles", selectedProfileId));
+                    hideModal('pin-modal');
+                } else {
+                    currentProfile = profile;
+                    // Start live sync for this user's data
+                    onSnapshot(doc(db, "profiles", currentProfile.id), (doc) => {
+                        currentProfile = { id: doc.id, ...doc.data() };
+                        refreshUI();
+                    });
+                    hideModal('pin-modal');
+                    document.getElementById('profile-screen').style.display = 'none';
+                    document.getElementById('main-app').classList.add('active');
+                    document.getElementById('current-profile-display').innerText = currentProfile.name;
+                }
             } else {
-                alert("Wrong PIN");
+                alert("Incorrect PIN");
             }
         };
 
-        // 2. Data Persistence to Cloud
+        // Data Management
         window.addWord = async (e) => {
             e.preventDefault();
             const word = {
@@ -224,20 +251,15 @@
                 course: document.getElementById('word-course').value,
                 date: new Date().toLocaleDateString()
             };
-            
-            const profileRef = doc(db, "profiles", currentProfile.id);
-            await updateDoc(profileRef, { "data.words": arrayUnion(word) });
+            await updateDoc(doc(db, "profiles", currentProfile.id), { "data.words": arrayUnion(word) });
             e.target.reset();
         };
 
         window.deleteWord = async (id) => {
-            if(!confirm("Delete?")) return;
-            const wordToDelete = currentProfile.data.words.find(w => w.id === id);
-            const profileRef = doc(db, "profiles", currentProfile.id);
-            await updateDoc(profileRef, { "data.words": arrayRemove(wordToDelete) });
+            const item = currentProfile.data.words.find(w => w.id === id);
+            await updateDoc(doc(db, "profiles", currentProfile.id), { "data.words": arrayRemove(item) });
         };
 
-        // Logic for Sentences and Courses follows the same arrayUnion/arrayRemove pattern...
         window.addSentence = async (e) => {
             e.preventDefault();
             const item = {
@@ -263,82 +285,98 @@
             e.target.reset();
         };
 
-        // --- UI Helper Functions ---
-        window.renderProfiles = () => {
-            const list = document.getElementById('profiles-list');
-            list.innerHTML = profiles.map(p => `
-                <div class="profile-card" onclick="selectProfile('${p.id}')">
-                    <div class="profile-icon">👤</div>
-                    <div class="profile-name">${p.name}</div>
+        // UI Refresh
+        function refreshUI() {
+            renderWords();
+            renderSentences();
+            renderCourses();
+            renderStudyList();
+            updateCourseDropdowns();
+        }
+
+        function renderWords() {
+            const container = document.getElementById('words-list');
+            container.innerHTML = currentProfile.data.words.map(w => `
+                <div class="item-card">
+                    <div style="display:flex; justify-content:space-between;">
+                        <div class="item-title">${w.word}</div>
+                        <button class="btn" style="background:none; border:none; cursor:pointer;" onclick="deleteWord('${w.id}')">🗑️</button>
+                    </div>
+                    <div style="color:#a0aec0; margin-top:5px;">${w.meaning}</div>
                 </div>
             `).join('');
+        }
+
+        function renderSentences() {
+            const container = document.getElementById('sentences-list');
+            container.innerHTML = currentProfile.data.sentences.map(s => `
+                <div class="item-card">
+                    <div style="color:white; font-style:italic;">"${s.sentence}"</div>
+                    <div style="color:#718096; font-size:12px; margin-top:5px;">${s.notes}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderCourses() {
+            const container = document.getElementById('courses-list');
+            container.innerHTML = currentProfile.data.courses.map(c => `
+                <div class="item-card"><div class="item-title">${c.name}</div></div>
+            `).join('');
+        }
+
+        // FULL STUDY LOGIC
+        window.renderStudyList = () => {
+            const list = document.getElementById('study-list');
+            let words = [...currentProfile.data.words];
+            
+            const filter = document.getElementById('study-filter').value;
+            if(filter) words = words.filter(w => w.course === filter);
+
+            const sort = document.getElementById('study-sort').value;
+            if(sort === 'alphabetical') words.sort((a,b) => a.word.localeCompare(b.word));
+            else words.sort((a,b) => b.id - a.id);
+
+            // Stats
+            const stats = `
+                <div class="stats-bar">
+                    <div class="stats-item"><div class="stats-number">${words.length}</div><div class="stats-label">Words</div></div>
+                    <div class="stats-item"><div class="stats-number">${currentProfile.data.courses.length}</div><div class="stats-label">Courses</div></div>
+                </div>
+            `;
+
+            const items = words.map(w => {
+                const courseName = currentProfile.data.courses.find(c => c.id === w.course)?.name || 'General';
+                return `
+                    <div class="dictionary-card">
+                        <div class="dictionary-word">${w.word}</div>
+                        <div style="color:#e2e8f0;">${w.meaning}</div>
+                        ${w.example ? `<div class="dictionary-example">💡 ${w.example}</div>` : ''}
+                        <span class="course-badge">${courseName}</span>
+                    </div>
+                `;
+            }).join('');
+
+            list.innerHTML = stats + items;
         };
 
-        window.selectProfile = (id) => {
-            selectedProfileForPin = profiles.find(p => p.id === id);
-            document.getElementById('pin-modal').classList.add('active');
-        };
+        function updateCourseDropdowns() {
+            const options = '<option value="">No Course</option>' + 
+                currentProfile.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            document.getElementById('word-course').innerHTML = options;
+            document.getElementById('sentence-course').innerHTML = options;
+            document.getElementById('study-filter').innerHTML = '<option value="">All Courses</option>' + options;
+        }
 
-        window.loginToProfile = () => {
-            document.getElementById('pin-modal').classList.remove('active');
-            document.getElementById('profile-screen').style.display = 'none';
-            document.getElementById('main-app').classList.add('active');
-            document.getElementById('current-profile-name').textContent = currentProfile.name;
-        };
-
-        window.logout = () => { location.reload(); }; // Simplest way to clear state
-
+        // Helpers
+        window.logout = () => location.reload();
+        window.showModal = (id) => document.getElementById(id).classList.add('active');
+        window.hideModal = (id) => document.getElementById(id).classList.remove('active');
         window.switchTab = (tab) => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById(tab + '-section').classList.add('active');
         };
-
-        function loadProfileData() {
-            renderWords();
-            renderSentences();
-            renderCourses();
-            updateCourseSelects();
-        }
-
-        function renderWords() {
-            const list = document.getElementById('words-list');
-            list.innerHTML = currentProfile.data.words.map(w => `
-                <div class="item-card">
-                    <div class="item-header"><div class="item-title">${w.word}</div>
-                    <button class="icon-btn" onclick="deleteWord('${w.id}')">🗑️</button></div>
-                    <div class="item-content">${w.meaning}</div>
-                </div>
-            `).join('');
-        }
-
-        function renderSentences() {
-            const list = document.getElementById('sentences-list');
-            list.innerHTML = currentProfile.data.sentences.map(s => `
-                <div class="item-card">
-                    <div class="item-content">${s.sentence}</div>
-                </div>
-            `).join('');
-        }
-
-        function renderCourses() {
-            const list = document.getElementById('courses-list');
-            list.innerHTML = currentProfile.data.courses.map(c => `
-                <div class="item-card"><div class="item-title">${c.name}</div></div>
-            `).join('');
-        }
-
-        function updateCourseSelects() {
-            const options = '<option value="">No Course</option>' + 
-                currentProfile.data.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            document.getElementById('word-course').innerHTML = options;
-            document.getElementById('sentence-course').innerHTML = options;
-        }
-
-        window.showCreateProfileModal = () => document.getElementById('create-profile-modal').classList.add('active');
-        window.closeCreateProfileModal = () => document.getElementById('create-profile-modal').classList.remove('active');
-        window.closePinModal = () => document.getElementById('pin-modal').classList.remove('active');
     </script>
 </body>
 </html>

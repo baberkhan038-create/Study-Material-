@@ -891,7 +891,7 @@
                             <input type="text" id="word-input" required placeholder="e.g., Serendipity">
                             
                             <label>Meaning</label>
-                            <textarea id="word-meaning" required placeholder="Definition and explanation"></textarea>
+                            <textarea id="word-meaning" required placeholder="Definition and explanation" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('word-course').focus();}"></textarea>
                             
                             <label>Course (optional)</label>
                             <select id="word-course">
@@ -1020,7 +1020,7 @@
             </div>
             <div class="form-group">
                 <label>Meaning</label>
-                <textarea id="edit-word-meaning"></textarea>
+                <textarea id="edit-word-meaning" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('edit-word-course').focus();}"></textarea>
             </div>
             <div class="form-group">
                 <label>Course</label>
@@ -1063,7 +1063,7 @@
         // FIREBASE CONFIGURATION
         // ========================================
         // TODO: Replace this with your own Firebase config
-        const firebaseConfig = {
+       const firebaseConfig = {
 
   apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
 

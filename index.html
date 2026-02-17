@@ -808,76 +808,6 @@
             padding: 20px;
         }
 
-        /* Custom Course Picker */
-        .course-picker {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-            margin-bottom: 0;
-            user-select: none;
-        }
-
-        .course-picker.open {
-            border-color: #00d4ff;
-            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-        }
-
-        .course-options {
-            width: 100%;
-            background: rgba(20, 20, 40, 0.98);
-            border: 2px solid #00d4ff;
-            border-top: none;
-            border-bottom-left-radius: 10px;
-            border-bottom-right-radius: 10px;
-            overflow: hidden;
-            animation: dropDown 0.25s ease-out;
-            margin-bottom: 15px;
-            box-shadow: 0 10px 30px rgba(0,212,255,0.2);
-        }
-
-        @keyframes dropDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .course-option {
-            padding: 13px 15px;
-            color: #e2e8f0;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .course-option:last-child {
-            border-bottom: none;
-        }
-
-        .course-option:hover, .course-option:active {
-            background: rgba(0, 212, 255, 0.15);
-            color: #00d4ff;
-        }
-
-        .course-option.selected {
-            background: rgba(0, 212, 255, 0.2);
-            color: #00d4ff;
-            font-weight: 600;
-        }
-
         @media (max-width: 480px) {
             .profiles-list {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -961,15 +891,12 @@
                             <input type="text" id="word-input" required placeholder="e.g., Serendipity">
                             
                             <label>Meaning</label>
-                            <textarea id="word-meaning" required placeholder="Definition and explanation" onkeydown="if(event.key==='Enter'){event.preventDefault();openCoursePicker('word-course-picker','word-course-hidden');}"></textarea>
+                            <textarea id="word-meaning" required placeholder="Definition and explanation" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('word-course').focus();}"></textarea>
                             
                             <label>Course (optional)</label>
-                            <input type="hidden" id="word-course-hidden" value="">
-                            <div id="word-course-picker" class="course-picker" onclick="toggleCoursePicker('word-course-picker','word-course-hidden')">
-                                <span id="word-course-label">No Course</span>
-                                <span>▼</span>
-                            </div>
-                            <div id="word-course-options" class="course-options" style="display:none;"></div>
+                            <select id="word-course">
+                                <option value="">No Course</option>
+                            </select>
                             
                             <button type="submit" class="submit-btn">Add Word</button>
                         </form>
@@ -1093,16 +1020,13 @@
             </div>
             <div class="form-group">
                 <label>Meaning</label>
-                <textarea id="edit-word-meaning" onkeydown="if(event.key==='Enter'){event.preventDefault();openCoursePicker('edit-word-course-picker','edit-word-course-hidden');}"></textarea>
+                <textarea id="edit-word-meaning" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('edit-word-course').focus();}"></textarea>
             </div>
             <div class="form-group">
                 <label>Course</label>
-                <input type="hidden" id="edit-word-course-hidden" value="">
-                <div id="edit-word-course-picker" class="course-picker" onclick="toggleCoursePicker('edit-word-course-picker','edit-word-course-hidden')">
-                    <span id="edit-word-course-label">No Course</span>
-                    <span>▼</span>
-                </div>
-                <div id="edit-word-course-options" class="course-options" style="display:none;"></div>
+                <select id="edit-word-course">
+                    <option value="">No Course</option>
+                </select>
             </div>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" onclick="closeEditWordModal()">Cancel</button>
@@ -1139,7 +1063,7 @@
         // FIREBASE CONFIGURATION
         // ========================================
         // TODO: Replace this with your own Firebase config
-        const firebaseConfig = {
+       const firebaseConfig = {
 
   apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
 
@@ -1156,6 +1080,7 @@
   measurementId: "G-VVWYDWEK6R"
 
 };
+
         // Initialize Firebase
         let app, db;
         let isFirebaseConfigured = false;
@@ -1498,7 +1423,7 @@
             const wordData = {
                 word: document.getElementById('word-input').value,
                 meaning: document.getElementById('word-meaning').value,
-                course: document.getElementById('word-course-hidden').value,
+                course: document.getElementById('word-course').value,
                 date: new Date().toLocaleDateString(),
                 timestamp: Date.now()
             };
@@ -1509,10 +1434,6 @@
                     wordData
                 );
                 event.target.reset();
-                // Reset course picker label after form reset
-                document.getElementById('word-course-hidden').value = '';
-                document.getElementById('word-course-label').textContent = 'No Course';
-                closeCoursePicker('word-course-picker');
             } catch (error) {
                 console.error('Error adding word:', error);
                 alert('Error adding word. Please try again.');
@@ -1526,13 +1447,11 @@
             window.currentEditId = id;
             document.getElementById('edit-word-input').value = word.word;
             document.getElementById('edit-word-meaning').value = word.meaning;
-
-            // Set the hidden input and label for the custom picker
-            const courseId = word.course || '';
-            document.getElementById('edit-word-course-hidden').value = courseId;
-            const course = window.currentCourses.find(c => c.id === courseId);
-            document.getElementById('edit-word-course-label').textContent = course ? course.name : 'No Course';
-            closeCoursePicker('edit-word-course-picker');
+            
+            const courseSelect = document.getElementById('edit-word-course');
+            courseSelect.innerHTML = '<option value="">No Course</option>' + 
+                window.currentCourses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            courseSelect.value = word.course || '';
 
             document.getElementById('edit-word-modal').classList.add('active');
         }
@@ -1551,7 +1470,7 @@
                     {
                         word: document.getElementById('edit-word-input').value,
                         meaning: document.getElementById('edit-word-meaning').value,
-                        course: document.getElementById('edit-word-course-hidden').value
+                        course: document.getElementById('edit-word-course').value
                     }
                 );
                 closeEditWordModal();
@@ -1732,77 +1651,18 @@
         }
 
         function updateCourseSelects() {
+            const wordSelect = document.getElementById('word-course');
             const studyFilter = document.getElementById('study-filter');
+            
+            const options = '<option value="">No Course</option>' + 
+                window.currentCourses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            
             const filterOptions = '<option value="">All Courses</option>' + 
                 window.currentCourses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            
+            wordSelect.innerHTML = options;
             studyFilter.innerHTML = filterOptions;
-
-            // Refresh any open pickers
-            refreshCoursePicker('word-course-picker', 'word-course-hidden');
-            refreshCoursePicker('edit-word-course-picker', 'edit-word-course-hidden');
         }
-
-        function buildCourseOptionsList(pickerId, hiddenId) {
-            const optionsId = pickerId.replace('-picker', '-options');
-            const optionsEl = document.getElementById(optionsId);
-            const currentVal = document.getElementById(hiddenId).value;
-
-            const courses = window.currentCourses || [];
-            const items = [{ id: '', name: 'No Course' }, ...courses];
-
-            optionsEl.innerHTML = items.map(c => `
-                <div class="course-option ${c.id === currentVal ? 'selected' : ''}"
-                     onclick="selectCourseOption('${pickerId}','${hiddenId}','${c.id}',${JSON.stringify(c.name)})">
-                    ${c.id === currentVal ? '✅' : '⬜'} ${c.name}
-                </div>
-            `).join('');
-        }
-
-        function openCoursePicker(pickerId, hiddenId) {
-            const optionsId = pickerId.replace('-picker', '-options');
-            const pickerEl = document.getElementById(pickerId);
-            const optionsEl = document.getElementById(optionsId);
-
-            buildCourseOptionsList(pickerId, hiddenId);
-            pickerEl.classList.add('open');
-            optionsEl.style.display = 'block';
-
-            // Scroll into view so user can see it
-            setTimeout(() => pickerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
-        }
-
-        function closeCoursePicker(pickerId) {
-            const optionsId = pickerId.replace('-picker', '-options');
-            document.getElementById(pickerId).classList.remove('open');
-            document.getElementById(optionsId).style.display = 'none';
-        }
-
-        function toggleCoursePicker(pickerId, hiddenId) {
-            const optionsEl = document.getElementById(pickerId.replace('-picker', '-options'));
-            if (optionsEl.style.display === 'none') {
-                openCoursePicker(pickerId, hiddenId);
-            } else {
-                closeCoursePicker(pickerId);
-            }
-        }
-
-        function selectCourseOption(pickerId, hiddenId, courseId, courseName) {
-            document.getElementById(hiddenId).value = courseId;
-            const labelId = pickerId.replace('-picker', '-label');
-            document.getElementById(labelId).textContent = courseName;
-            closeCoursePicker(pickerId);
-        }
-
-        function refreshCoursePicker(pickerId, hiddenId) {
-            const labelId = pickerId.replace('-picker', '-label');
-            const currentVal = document.getElementById(hiddenId).value;
-            const course = window.currentCourses.find(c => c.id === currentVal);
-            document.getElementById(labelId).textContent = course ? course.name : 'No Course';
-        }
-
-        window.openCoursePicker = openCoursePicker;
-        window.toggleCoursePicker = toggleCoursePicker;
-        window.selectCourseOption = selectCourseOption;
 
         // Study Section
         function renderStudyList(filtered = null) {

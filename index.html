@@ -688,17 +688,17 @@
             background: rgba(30, 30, 46, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            margin-bottom: 15px;
+            border-radius: 12px;
+            padding: 12px 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
             border-left: 4px solid #00d4ff;
             transition: all 0.3s ease;
         }
 
         .dictionary-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+            transform: translateX(3px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.25);
         }
 
         .dictionary-word {
@@ -876,7 +876,6 @@
                 </div>
                 <div class="tabs">
                     <button class="tab active" data-tab="words" onclick="switchTab('words')">Words</button>
-                    <button class="tab" data-tab="sentences" onclick="switchTab('sentences')">Sentences</button>
                     <button class="tab" data-tab="courses" onclick="switchTab('courses')">Courses</button>
                     <button class="tab" data-tab="study" onclick="switchTab('study')">Study</button>
                 </div>
@@ -894,9 +893,6 @@
                             <label>Meaning</label>
                             <textarea id="word-meaning" required placeholder="Definition and explanation"></textarea>
                             
-                            <label>Example Sentence</label>
-                            <textarea id="word-example" placeholder="How to use it in a sentence"></textarea>
-                            
                             <label>Course (optional)</label>
                             <select id="word-course">
                                 <option value="">No Course</option>
@@ -911,33 +907,6 @@
                     </div>
 
                     <div id="words-list" class="items-list"></div>
-                </div>
-
-                <!-- Sentences Section -->
-                <div id="sentences-section" class="content-section">
-                    <div class="add-form">
-                        <h2>Add New Sentence</h2>
-                        <form id="sentence-form" onsubmit="addSentence(event)">
-                            <label>Sentence</label>
-                            <textarea id="sentence-input" required placeholder="Enter the sentence"></textarea>
-                            
-                            <label>Translation/Notes</label>
-                            <textarea id="sentence-notes" placeholder="Meaning or notes about this sentence"></textarea>
-                            
-                            <label>Course (optional)</label>
-                            <select id="sentence-course">
-                                <option value="">No Course</option>
-                            </select>
-                            
-                            <button type="submit" class="submit-btn">Add Sentence</button>
-                        </form>
-                    </div>
-
-                    <div class="search-box">
-                        <input type="text" placeholder="🔍 Search sentences..." onkeyup="searchSentences(this.value)">
-                    </div>
-
-                    <div id="sentences-list" class="items-list"></div>
                 </div>
 
                 <!-- Courses Section -->
@@ -993,11 +962,11 @@
             <h2>Create New Profile</h2>
             <div class="form-group">
                 <label>Profile Name</label>
-                <input type="text" id="new-profile-name" placeholder="Enter your name" maxlength="20">
+                <input type="text" id="new-profile-name" placeholder="Enter your name" maxlength="20" autocomplete="off">
             </div>
             <div class="form-group">
                 <label>Set 4-Digit PIN</label>
-                <input type="tel" id="new-profile-pin" class="pin-input" placeholder="****" maxlength="4" pattern="[0-9]{4}">
+                <input type="password" id="new-profile-pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false">
             </div>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" onclick="closeCreateProfileModal()">Cancel</button>
@@ -1014,7 +983,7 @@
                 Enter PIN for: <strong id="pin-profile-name" style="color: #00d4ff;"></strong>
             </p>
             <div class="form-group">
-                <input type="tel" id="enter-pin" class="pin-input" placeholder="****" maxlength="4" pattern="[0-9]{4}">
+                <input type="password" id="enter-pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             </div>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" onclick="closePinModal()">Cancel</button>
@@ -1032,7 +1001,7 @@
             </p>
             <div class="form-group">
                 <label>Enter your PIN to confirm</label>
-                <input type="tel" id="delete-profile-pin" class="pin-input" placeholder="****" maxlength="4" pattern="[0-9]{4}">
+                <input type="password" id="delete-profile-pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             </div>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" onclick="closeDeleteProfileModal()">Cancel</button>
@@ -1047,15 +1016,11 @@
             <h2>Edit Word</h2>
             <div class="form-group">
                 <label>Word</label>
-                <input type="text" id="edit-word-input">
+                <input type="text" id="edit-word-input" autocomplete="off">
             </div>
             <div class="form-group">
                 <label>Meaning</label>
                 <textarea id="edit-word-meaning"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Example</label>
-                <textarea id="edit-word-example"></textarea>
             </div>
             <div class="form-group">
                 <label>Course</label>
@@ -1066,31 +1031,6 @@
             <div class="modal-buttons">
                 <button class="btn btn-secondary" onclick="closeEditWordModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveEditedWord()">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Sentence Modal -->
-    <div id="edit-sentence-modal" class="modal">
-        <div class="modal-content">
-            <h2>Edit Sentence</h2>
-            <div class="form-group">
-                <label>Sentence</label>
-                <textarea id="edit-sentence-input"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Translation/Notes</label>
-                <textarea id="edit-sentence-notes"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Course</label>
-                <select id="edit-sentence-course">
-                    <option value="">No Course</option>
-                </select>
-            </div>
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="closeEditSentenceModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveEditedSentence()">Save</button>
             </div>
         </div>
     </div>
@@ -1141,8 +1081,6 @@
 
 };
 
-
-
         // Initialize Firebase
         let app, db;
         let isFirebaseConfigured = false;
@@ -1166,7 +1104,7 @@
         window.selectedProfileForPin = null;
         window.currentEditId = null;
         window.currentTab = 'words';
-        window.tabOrder = ['words', 'sentences', 'courses', 'study'];
+        window.tabOrder = ['words', 'courses', 'study'];
 
         // Make Firebase available globally
         window.db = db;
@@ -1370,17 +1308,6 @@
                 renderStudyList();
             });
 
-            // Real-time listener for sentences
-            const sentencesQuery = query(collection(db, 'profiles', profileId, 'sentences'), orderBy('timestamp', 'desc'));
-            onSnapshot(sentencesQuery, (snapshot) => {
-                const sentences = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                window.currentSentences = sentences;
-                renderSentences();
-            });
-
             // Real-time listener for courses
             const coursesQuery = query(collection(db, 'profiles', profileId, 'courses'), orderBy('timestamp', 'desc'));
             onSnapshot(coursesQuery, (snapshot) => {
@@ -1442,7 +1369,6 @@
     <script>
         // Initialize data holders
         window.currentWords = [];
-        window.currentSentences = [];
         window.currentCourses = [];
 
         // Tab Management with Swipe
@@ -1497,7 +1423,6 @@
             const wordData = {
                 word: document.getElementById('word-input').value,
                 meaning: document.getElementById('word-meaning').value,
-                example: document.getElementById('word-example').value,
                 course: document.getElementById('word-course').value,
                 date: new Date().toLocaleDateString(),
                 timestamp: Date.now()
@@ -1522,7 +1447,6 @@
             window.currentEditId = id;
             document.getElementById('edit-word-input').value = word.word;
             document.getElementById('edit-word-meaning').value = word.meaning;
-            document.getElementById('edit-word-example').value = word.example || '';
             
             const courseSelect = document.getElementById('edit-word-course');
             courseSelect.innerHTML = '<option value="">No Course</option>' + 
@@ -1546,7 +1470,6 @@
                     {
                         word: document.getElementById('edit-word-input').value,
                         meaning: document.getElementById('edit-word-meaning').value,
-                        example: document.getElementById('edit-word-example').value,
                         course: document.getElementById('edit-word-course').value
                     }
                 );
@@ -1598,7 +1521,6 @@
                         </div>
                         <div class="item-content">
                             <strong>Meaning:</strong> ${word.meaning}
-                            ${word.example ? `<br><br><strong>Example:</strong> ${word.example}` : ''}
                         </div>
                         ${course ? `<span class="course-badge">${course.name}</span>` : ''}
                         <div class="item-meta">Added on ${word.date}</div>
@@ -1619,134 +1541,7 @@
             renderWords(filtered);
         }
 
-        // Sentence Management
-        async function addSentence(event) {
-            event.preventDefault();
-            
-            if (!window.isFirebaseConfigured || !window.currentProfile) return;
-
-            const sentenceData = {
-                sentence: document.getElementById('sentence-input').value,
-                notes: document.getElementById('sentence-notes').value,
-                course: document.getElementById('sentence-course').value,
-                date: new Date().toLocaleDateString(),
-                timestamp: Date.now()
-            };
-
-            try {
-                await window.firestoreModules.addDoc(
-                    window.firestoreModules.collection(window.db, 'profiles', window.currentProfile.id, 'sentences'),
-                    sentenceData
-                );
-                event.target.reset();
-            } catch (error) {
-                console.error('Error adding sentence:', error);
-                alert('Error adding sentence. Please try again.');
-            }
-        }
-
-        function editSentence(id) {
-            const sentence = window.currentSentences.find(s => s.id === id);
-            if (!sentence) return;
-
-            window.currentEditId = id;
-            document.getElementById('edit-sentence-input').value = sentence.sentence;
-            document.getElementById('edit-sentence-notes').value = sentence.notes || '';
-            
-            const courseSelect = document.getElementById('edit-sentence-course');
-            courseSelect.innerHTML = '<option value="">No Course</option>' + 
-                window.currentCourses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            courseSelect.value = sentence.course || '';
-
-            document.getElementById('edit-sentence-modal').classList.add('active');
-        }
-
-        function closeEditSentenceModal() {
-            document.getElementById('edit-sentence-modal').classList.remove('active');
-            window.currentEditId = null;
-        }
-
-        async function saveEditedSentence() {
-            if (!window.isFirebaseConfigured || !window.currentProfile || !window.currentEditId) return;
-
-            try {
-                await window.firestoreModules.updateDoc(
-                    window.firestoreModules.doc(window.db, 'profiles', window.currentProfile.id, 'sentences', window.currentEditId),
-                    {
-                        sentence: document.getElementById('edit-sentence-input').value,
-                        notes: document.getElementById('edit-sentence-notes').value,
-                        course: document.getElementById('edit-sentence-course').value
-                    }
-                );
-                closeEditSentenceModal();
-            } catch (error) {
-                console.error('Error updating sentence:', error);
-                alert('Error updating sentence. Please try again.');
-            }
-        }
-
-        async function deleteSentence(id) {
-            if (!confirm('Delete this sentence?')) return;
-            if (!window.isFirebaseConfigured || !window.currentProfile) return;
-
-            try {
-                await window.firestoreModules.deleteDoc(
-                    window.firestoreModules.doc(window.db, 'profiles', window.currentProfile.id, 'sentences', id)
-                );
-            } catch (error) {
-                console.error('Error deleting sentence:', error);
-                alert('Error deleting sentence. Please try again.');
-            }
-        }
-
-        function renderSentences(filtered = null) {
-            const list = document.getElementById('sentences-list');
-            const sentences = filtered || window.currentSentences;
-
-            if (!sentences || sentences.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">💬</div>
-                        <div class="empty-state-text">No sentences yet. Add your first sentence above!</div>
-                    </div>
-                `;
-                return;
-            }
-
-            list.innerHTML = sentences.map(sentence => {
-                const course = window.currentCourses.find(c => c.id === sentence.course);
-                return `
-                    <div class="item-card">
-                        <div class="item-header">
-                            <div style="flex: 1;"></div>
-                            <div class="item-actions">
-                                <button class="icon-btn" onclick="editSentence('${sentence.id}')" title="Edit">✏️</button>
-                                <button class="icon-btn" onclick="deleteSentence('${sentence.id}')" title="Delete">🗑️</button>
-                            </div>
-                        </div>
-                        <div class="item-content">
-                            <strong>Sentence:</strong> ${sentence.sentence}
-                            ${sentence.notes ? `<br><br><strong>Notes:</strong> ${sentence.notes}` : ''}
-                        </div>
-                        ${course ? `<span class="course-badge">${course.name}</span>` : ''}
-                        <div class="item-meta">Added on ${sentence.date}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function searchSentences(query) {
-            if (!query) {
-                renderSentences();
-                return;
-            }
-            const filtered = window.currentSentences.filter(s => 
-                s.sentence.toLowerCase().includes(query.toLowerCase()) ||
-                (s.notes && s.notes.toLowerCase().includes(query.toLowerCase()))
-            );
-            renderSentences(filtered);
-        }
-
+        // Sentence functions removed - sentences tab deleted
         // Course Management
         async function addCourse(event) {
             event.preventDefault();
@@ -1835,7 +1630,6 @@
 
             list.innerHTML = window.currentCourses.map(course => {
                 const wordCount = window.currentWords.filter(w => w.course === course.id).length;
-                const sentenceCount = window.currentSentences.filter(s => s.course === course.id).length;
                 
                 return `
                     <div class="course-item">
@@ -1849,7 +1643,6 @@
                         ${course.description ? `<div class="course-description">${course.description}</div>` : ''}
                         <div class="course-stats">
                             <div>📖 ${wordCount} words</div>
-                            <div>💬 ${sentenceCount} sentences</div>
                             <div>📅 ${course.date}</div>
                         </div>
                     </div>
@@ -1859,7 +1652,6 @@
 
         function updateCourseSelects() {
             const wordSelect = document.getElementById('word-course');
-            const sentenceSelect = document.getElementById('sentence-course');
             const studyFilter = document.getElementById('study-filter');
             
             const options = '<option value="">No Course</option>' + 
@@ -1869,7 +1661,6 @@
                 window.currentCourses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             
             wordSelect.innerHTML = options;
-            sentenceSelect.innerHTML = options;
             studyFilter.innerHTML = filterOptions;
         }
 
@@ -1903,18 +1694,13 @@
             }
 
             const totalWords = words.length;
-            const wordsWithExamples = words.filter(w => w.example).length;
             const coursesUsed = new Set(words.filter(w => w.course).map(w => w.course)).size;
 
             const statsBar = `
                 <div class="stats-bar">
                     <div class="stats-item">
                         <div class="stats-number">${totalWords}</div>
-                        <div class="stats-label">Words</div>
-                    </div>
-                    <div class="stats-item">
-                        <div class="stats-number">${wordsWithExamples}</div>
-                        <div class="stats-label">With Examples</div>
+                        <div class="stats-label">Total Words</div>
                     </div>
                     <div class="stats-item">
                         <div class="stats-number">${coursesUsed}</div>
@@ -1927,14 +1713,19 @@
                 const course = window.currentCourses.find(c => c.id === word.course);
                 return `
                     <div class="dictionary-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <div class="dictionary-word">${word.word}</div>
-                            <span style="color: #718096; font-size: 14px;">#${index + 1}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <div class="dictionary-word" style="font-size: 18px; margin-bottom: 0;">${word.word}</div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="color: #718096; font-size: 12px;">#${index + 1}</span>
+                                <button class="icon-btn" style="padding: 4px 6px; font-size: 14px;" onclick="editWord('${word.id}')" title="Edit">✏️</button>
+                                <button class="icon-btn" style="padding: 4px 6px; font-size: 14px;" onclick="deleteWord('${word.id}')" title="Delete">🗑️</button>
+                            </div>
                         </div>
-                        <div class="dictionary-meaning">${word.meaning}</div>
-                        ${word.example ? `<div class="dictionary-example">💡 ${word.example}</div>` : ''}
-                        ${course ? `<span class="course-badge" style="margin-top: 12px;">${course.name}</span>` : ''}
-                        <div class="item-meta" style="margin-top: 12px;">Added on ${word.date}</div>
+                        <div class="dictionary-meaning" style="font-size: 13px; line-height: 1.5; margin-bottom: 4px;">${word.meaning}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.07);">
+                            ${course ? `<span class="course-badge" style="margin-top: 0; font-size: 10px; padding: 2px 8px;">${course.name}</span>` : '<span></span>'}
+                            <span style="font-size: 11px; color: #718096;">${word.date}</span>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -1949,8 +1740,7 @@
             }
             const filtered = window.currentWords.filter(w => 
                 w.word.toLowerCase().includes(query.toLowerCase()) ||
-                w.meaning.toLowerCase().includes(query.toLowerCase()) ||
-                (w.example && w.example.toLowerCase().includes(query.toLowerCase()))
+                w.meaning.toLowerCase().includes(query.toLowerCase())
             );
             renderStudyList(filtered);
         }
@@ -1963,12 +1753,6 @@
         window.saveEditedWord = saveEditedWord;
         window.deleteWord = deleteWord;
         window.searchWords = searchWords;
-        window.addSentence = addSentence;
-        window.editSentence = editSentence;
-        window.closeEditSentenceModal = closeEditSentenceModal;
-        window.saveEditedSentence = saveEditedSentence;
-        window.deleteSentence = deleteSentence;
-        window.searchSentences = searchSentences;
         window.addCourse = addCourse;
         window.editCourse = editCourse;
         window.closeEditCourseModal = closeEditCourseModal;

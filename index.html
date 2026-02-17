@@ -517,13 +517,32 @@
             color: #718096;
         }
 
-        .add-form input:focus,
-        .add-form textarea:focus,
         .add-form select:focus {
             outline: none;
             background: rgba(255, 255, 255, 0.08);
             border-color: #00d4ff;
             box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+        }
+
+        .add-form select[size]:not([size="1"]) {
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+            background: rgba(20, 20, 40, 0.98);
+            border-radius: 10px;
+            overflow-y: auto;
+        }
+
+        .add-form select option {
+            padding: 10px 12px;
+            background: rgba(20, 20, 40, 0.98);
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+
+        .add-form select option:checked,
+        .add-form select option:hover {
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            color: white;
         }
 
         .add-form textarea {
@@ -579,7 +598,7 @@
         .items-list {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
         }
 
         .item-card {
@@ -891,10 +910,10 @@
                             <input type="text" id="word-input" required placeholder="e.g., Serendipity" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             
                             <label>Meaning</label>
-                            <textarea id="word-meaning" required placeholder="Definition and explanation" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+                            <textarea id="word-meaning" required placeholder="Definition and explanation" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter'){event.preventDefault();var s=document.getElementById('word-course');s.focus();s.size=Math.min(s.options.length,5);}"></textarea>
                             
                             <label>Course (optional)</label>
-                            <select id="word-course">
+                            <select id="word-course" onblur="this.size=1;" onchange="this.size=1;this.blur();">
                                 <option value="">No Course</option>
                             </select>
                             
@@ -1063,7 +1082,7 @@
         // FIREBASE CONFIGURATION
         // ========================================
         // TODO: Replace this with your own Firebase config
-       const firebaseConfig = {
+        const firebaseConfig = {
 
   apiKey: "AIzaSyCt522OjKEuh7BMKoX2_yIvgy66dXs2DxI",
 
@@ -1511,19 +1530,19 @@
             list.innerHTML = words.map(word => {
                 const course = window.currentCourses.find(c => c.id === word.course);
                 return `
-                    <div class="item-card">
-                        <div class="item-header">
-                            <div class="item-title">${word.word}</div>
-                            <div class="item-actions">
-                                <button class="icon-btn" onclick="editWord('${word.id}')" title="Edit">✏️</button>
-                                <button class="icon-btn" onclick="deleteWord('${word.id}')" title="Delete">🗑️</button>
+                    <div class="dictionary-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <div class="dictionary-word" style="font-size: 18px; margin-bottom: 0;">${word.word}</div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <button class="icon-btn" style="padding: 4px 6px; font-size: 14px;" onclick="editWord('${word.id}')" title="Edit">✏️</button>
+                                <button class="icon-btn" style="padding: 4px 6px; font-size: 14px;" onclick="deleteWord('${word.id}')" title="Delete">🗑️</button>
                             </div>
                         </div>
-                        <div class="item-content">
-                            <strong>Meaning:</strong> ${word.meaning}
+                        <div class="dictionary-meaning" style="font-size: 13px; line-height: 1.5; margin-bottom: 4px;">${word.meaning}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.07);">
+                            ${course ? `<span class="course-badge" style="margin-top: 0; font-size: 10px; padding: 2px 8px;">${course.name}</span>` : '<span></span>'}
+                            <span style="font-size: 11px; color: #718096;">${word.date}</span>
                         </div>
-                        ${course ? `<span class="course-badge">${course.name}</span>` : ''}
-                        <div class="item-meta">Added on ${word.date}</div>
                     </div>
                 `;
             }).join('');

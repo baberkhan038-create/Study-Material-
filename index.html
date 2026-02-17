@@ -888,10 +888,10 @@
                         <h2>Add New Word</h2>
                         <form id="word-form" onsubmit="addWord(event)">
                             <label>Word</label>
-                            <input type="text" id="word-input" required placeholder="e.g., Serendipity">
+                            <input type="text" id="word-input" required placeholder="e.g., Serendipity" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             
                             <label>Meaning</label>
-                            <textarea id="word-meaning" required placeholder="Definition and explanation" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('word-course').focus();}"></textarea>
+                            <textarea id="word-meaning" required placeholder="Definition and explanation" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
                             
                             <label>Course (optional)</label>
                             <select id="word-course">
@@ -903,7 +903,7 @@
                     </div>
 
                     <div class="search-box">
-                        <input type="text" placeholder="🔍 Search words..." onkeyup="searchWords(this.value)">
+                        <input type="text" placeholder="🔍 Search words..." onkeyup="searchWords(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
                     </div>
 
                     <div id="words-list" class="items-list"></div>
@@ -915,10 +915,10 @@
                         <h2>Add New Course</h2>
                         <form id="course-form" onsubmit="addCourse(event)">
                             <label>Course Name</label>
-                            <input type="text" id="course-name" required placeholder="e.g., Business English">
+                            <input type="text" id="course-name" required placeholder="e.g., Business English" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             
                             <label>Description</label>
-                            <textarea id="course-description" placeholder="What is this course about?"></textarea>
+                            <textarea id="course-description" placeholder="What is this course about?" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
                             
                             <button type="submit" class="submit-btn">Add Course</button>
                         </form>
@@ -947,7 +947,7 @@
                     </div>
 
                     <div class="search-box">
-                        <input type="text" placeholder="🔍 Search your dictionary..." onkeyup="searchStudyList(this.value)">
+                        <input type="text" placeholder="🔍 Search your dictionary..." onkeyup="searchStudyList(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
                     </div>
 
                     <div id="study-list" class="items-list"></div>
@@ -962,7 +962,7 @@
             <h2>Create New Profile</h2>
             <div class="form-group">
                 <label>Profile Name</label>
-                <input type="text" id="new-profile-name" placeholder="Enter your name" maxlength="20" autocomplete="off">
+                <input type="text" id="new-profile-name" placeholder="Enter your name" maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false">
             </div>
             <div class="form-group">
                 <label>Set 4-Digit PIN</label>
@@ -1016,11 +1016,11 @@
             <h2>Edit Word</h2>
             <div class="form-group">
                 <label>Word</label>
-                <input type="text" id="edit-word-input" autocomplete="off">
+                <input type="text" id="edit-word-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             </div>
             <div class="form-group">
                 <label>Meaning</label>
-                <textarea id="edit-word-meaning" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('edit-word-course').focus();}"></textarea>
+                <textarea id="edit-word-meaning" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
             </div>
             <div class="form-group">
                 <label>Course</label>
@@ -1041,11 +1041,11 @@
             <h2>Edit Course</h2>
             <div class="form-group">
                 <label>Course Name</label>
-                <input type="text" id="edit-course-name">
+                <input type="text" id="edit-course-name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             </div>
             <div class="form-group">
                 <label>Description</label>
-                <textarea id="edit-course-description"></textarea>
+                <textarea id="edit-course-description" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
             </div>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" onclick="closeEditCourseModal()">Cancel</button>
